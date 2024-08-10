@@ -1,9 +1,0 @@
-/Users/zyj/Code/crates/bmbp_config/target/debug/deps/libpin_utils-13a5d3dcee45650f.rmeta: /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/lib.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/stack_pin.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/projection.rs
-
-/Users/zyj/Code/crates/bmbp_config/target/debug/deps/libpin_utils-13a5d3dcee45650f.rlib: /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/lib.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/stack_pin.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/projection.rs
-
-/Users/zyj/Code/crates/bmbp_config/target/debug/deps/pin_utils-13a5d3dcee45650f.d: /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/lib.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/stack_pin.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/projection.rs
-
-/Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/lib.rs:
-/Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/stack_pin.rs:
-/Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/pin-utils-0.1.0/src/projection.rs:
