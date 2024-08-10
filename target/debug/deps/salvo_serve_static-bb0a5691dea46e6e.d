@@ -1,0 +1,11 @@
+/Users/zyj/Code/crates/bmbp_config/target/debug/deps/libsalvo_serve_static-bb0a5691dea46e6e.rmeta: /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/lib.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/dir.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/file.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/cfg.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/embed.rs
+
+/Users/zyj/Code/crates/bmbp_config/target/debug/deps/libsalvo_serve_static-bb0a5691dea46e6e.rlib: /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/lib.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/dir.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/file.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/cfg.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/embed.rs
+
+/Users/zyj/Code/crates/bmbp_config/target/debug/deps/salvo_serve_static-bb0a5691dea46e6e.d: /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/lib.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/dir.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/file.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/cfg.rs /Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/embed.rs
+
+/Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/lib.rs:
+/Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/dir.rs:
+/Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/file.rs:
+/Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/cfg.rs:
+/Users/zyj/.cargo/registry/src/index.crates.io-6f17d22bba15001f/salvo-serve-static-0.69.0/src/embed.rs:

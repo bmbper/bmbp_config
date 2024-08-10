@@ -1,2 +1,2 @@
-# bmbp_config
-the system config contains: vars\dict\datasource\security
+# bmbp_admin
+the manage system

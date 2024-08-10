@@ -1,0 +1,17 @@
+[package]
+name = "bmbp_config"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description.workspace = true
+license.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+documentation.workspace = true
+
+[dependencies]
+rust-embed ={workspace = true}
+salvo = {workspace = true}
+bmbp_ctx_vars={workspace = true}
+tera = {workspace=true}

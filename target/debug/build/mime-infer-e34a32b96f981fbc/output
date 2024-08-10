@@ -1,0 +1,1 @@
+cargo:rustc-env=MIME_TYPES_GENERATED_PATH=/Users/zyj/Code/crates/bmbp_config/target/debug/build/mime-infer-e34a32b96f981fbc/out/mime_types_generated.rs
