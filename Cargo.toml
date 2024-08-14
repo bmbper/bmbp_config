@@ -22,6 +22,7 @@ bmbp_ctx_vars = "0.1.1"
 # 静态资源
 bmbp_lib_ui = "0.1.1"
 bmbp_rdbc_type = "0.2.4"
+bmbp_http_type = "0.0.2"
 
 
 rust-embed = "8.5.0"

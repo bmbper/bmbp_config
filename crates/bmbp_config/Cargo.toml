@@ -15,6 +15,7 @@ bmbp_ctx_vars={workspace = true}
 bmbp_lib_ui={workspace = true}
 bmbp_marco_rdbc = {workspace = true}
 bmbp_rdbc_type = {workspace = true}
+bmbp_http_type = {workspace = true}
 serde = {workspace = true}
 serde_json = {workspace = true}
 serde_repr = {workspace = true}
