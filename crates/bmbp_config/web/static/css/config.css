@@ -1,0 +1,25 @@
+.bmbp-grid-container{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+.bmbp-grid-container .bmbp-grid-search{
+    background: aqua;
+}
+.bmbp-grid-container .bmbp-grid-toolbar{
+    padding: 4px 0;
+    box-sizing: border-box;
+    background: aqua;
+}
+.bmbp-grid-container .bmbp-grid-table{
+    flex:1;
+    background: lavender;
+}
+.bmbp-grid-container .bmbp-grid-page{
+    height: 48px ;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+}
