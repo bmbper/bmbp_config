@@ -1,4 +1,4 @@
-// web/jsx/vars/index.jsx
+// web/tsx/vars/index.tsx
 var vars_default = {};
 export {
   vars_default as default

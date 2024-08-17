@@ -5,19 +5,40 @@
     height: 100%;
 }
 .bmbp-grid-container .bmbp-grid-search{
-    background: aqua;
+    padding: 12px 0 0 0;
+    box-sizing: border-box;
 }
 .bmbp-grid-container .bmbp-grid-toolbar{
     padding: 4px 0;
     box-sizing: border-box;
-    background: aqua;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+}
+.bmbp-grid-container .bmbp-grid-toolbar .major{
+    box-sizing: border-box;
+    height: 100%;
+    flex:1;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    gap: 5px;
+}
+.bmbp-grid-container .bmbp-grid-toolbar .extra{
+    box-sizing: border-box;
+    height: 100%;
+    flex:1;
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    gap: 5px;
 }
 .bmbp-grid-container .bmbp-grid-table{
+    box-sizing: border-box;
     flex:1;
-    background: lavender;
 }
 .bmbp-grid-container .bmbp-grid-page{
-    height: 48px ;
+    padding: 4px 0 12px 0;
     box-sizing: border-box;
     display: flex;
     justify-content: end;
