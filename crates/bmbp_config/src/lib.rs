@@ -1,7 +1,7 @@
 use crate::init::build_bmbp_static_router;
 use crate::view::*;
 use salvo::prelude::*;
-use crate::action::find_dict_tree;
+use crate::action::dict::find_dict_tree;
 
 mod action;
 mod ctx;

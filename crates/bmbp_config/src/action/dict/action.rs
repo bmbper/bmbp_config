@@ -1,8 +1,9 @@
 use std::thread;
-use crate::action::bean::BmbpDict;
+
 use bmbp_http_type::BmbpResp;
 use bmbp_http_type::RespVo;
 use salvo::{Depot, handler, Request, Response};
+use crate::action::dict::bean::BmbpDict;
 
 #[handler]
 pub async fn find_dict_tree(
