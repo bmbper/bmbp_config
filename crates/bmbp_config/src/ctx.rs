@@ -1,5 +1,5 @@
 use bmbp_ctx_vars::{ContexVars, BMBP_CONTEXT_VARS};
-use tera::{Context, Tera};
+use tera::Context;
 
 pub(crate) fn ctx_init() -> Context {
     let mut ctx = tera::Context::new();

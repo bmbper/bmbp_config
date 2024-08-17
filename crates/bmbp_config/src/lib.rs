@@ -1,7 +1,7 @@
+use crate::action::dict::*;
 use crate::init::build_bmbp_static_router;
 use crate::view::*;
 use salvo::prelude::*;
-use crate::action::dict::find_dict_tree;
 
 mod action;
 mod ctx;
@@ -14,7 +14,9 @@ pub fn build_bmbp_config_router() -> Router {
 
     // action router
     let action_router = Router::with_path("/bmbp/config/action").push(
-        Router::with_path("dict").push(Router::with_path("find_tree.action").get(find_dict_tree))
+        Router::with_path("dict")
+            .push(Router::with_path("find_tree.action").post(find_dict_tree))
+            .push(Router::with_path("find_page.action").post(find_dict_page)),
     );
     router = router.push(action_router);
 

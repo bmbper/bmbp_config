@@ -1,5 +1,9 @@
 // web/tsx/dict/action.tsx
 var PageState = {};
+var PageUrl = {
+  findTreeUrl: "/bmbp/config/action/dict/find_tree.action",
+  findPageUrl: "/bmbp/config/action/dict/find_page.action"
+};
 var PageAction = {
   init: (props) => {
     const [treeData, setTreeData] = React.useState([]);
@@ -40,32 +44,42 @@ var PageAction = {
       PageState.setSelectTreeNodeKeys([]);
       PageState.setSelectTreeNodeData({});
     }
-    console.log(v);
-    const treeData = [
-      {
-        dictName: "\u4E00\u7EA7 1",
-        dictCode: "0-0",
-        dictChildren: [
-          {
-            dictName: "\u4E8C\u7EA7 1-0",
-            dictCode: "0-0-0",
-            dictChildren: [
-              {
-                dictName: "\u4E09\u7EA7 1-0-0",
-                dictCode: "0-0-0-0"
-              }
-            ]
-          }
-        ]
+    axios.post(PageUrl.findTreeUrl, { dictName: v }).then((resp) => {
+      const { code, msg, data } = resp;
+      if (code == 0) {
+        PageState.setTreeData(data);
+        PageAction.findGridData({});
+      } else {
+        console.log("error:", resp);
+        arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
       }
-    ];
-    PageState.setTreeData(treeData);
+    }).catch((err) => {
+      console.log("error:", err);
+      arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
+    });
   },
   findGridData: (searchFormData) => {
-    const gridData = [
-      { dictName: "\u4E2D\u56FD", dictCode: "0-0", dictNamePath: "A/\u65F6\u4EE3\u53D1\u751F\u7684\u53D1\u751F\u5730\u65B9/sdfsfsfd/\u65AF\u8482\u82AC\u68EE\u8BE5\u6B7B\u7684\u6B4C\u5FB7\u6362\u4E2A\u5730\u65B9\u597D/,/sdfsfsfd/\u65AF\u8482\u82AC\u68EE\u8BE5\u6B7B\u7684\u6B4C\u5FB7\u6362\u4E2A\u5730\u65B9\u597D/,/sdfsfsfd/\u65AF\u8482\u82AC\u68EE\u8BE5\u6B7B\u7684\u6B4C\u5FB7\u6362\u4E2A\u5730\u65B9\u597D/", dictChildren: [{ dictName: "\u4E8C\u7EA7 1-0", dictCode: "0-0-0", dictChildren: [{ dictName: "\u4E09\u7EA7 1-0-0", dictCode: "0-0-0-0" }] }] }
-    ];
-    PageState.setGridData(gridData);
+    let pageParams = {
+      pageNo: PageState.pageData.pageNo,
+      pageSize: PageState.pageData.pageSize,
+      params: {
+        parentDictCode: PageState.selectTreeNodeData?.dictCode,
+        ...searchFormData
+      }
+    };
+    axios.post(PageUrl.findPageUrl, pageParams).then((resp) => {
+      const { code, msg, data } = resp;
+      if (code == 0) {
+        PageState.setGridData(data.data);
+        PageState.setPageData({ ...PageState.pageData, total: data.total });
+      } else {
+        console.log("error:", resp);
+        arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
+      }
+    }).catch((err) => {
+      console.log("error:", err);
+      arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
+    });
   },
   addBrotherNode: (node) => {
     console.log("addDict");
@@ -77,6 +91,9 @@ var PageAction = {
     console.log("editDict");
   },
   removeNode: (node) => {
+    console.log("delDict");
+  },
+  batchRemoveNode: (keys) => {
     console.log("delDict");
   },
   enableNode: (node) => {
@@ -96,7 +113,7 @@ var PageAction = {
 // web/tsx/dict/index.tsx
 window.onload = () => {
   const root = ReactDOM.createRoot(document.getElementById("app"));
-  root.render(/* @__PURE__ */ React.createElement(PageView, null));
+  root.render(React.createElement(PageView, null));
 };
 var PageView = (props) => {
   PageAction.init(props);
@@ -104,57 +121,61 @@ var PageView = (props) => {
     PageAction.findTreeData("");
     PageAction.findGridData("");
   }, []);
-  return /* @__PURE__ */ React.createElement("div", {
+  return React.createElement("div", {
     className: "bmbp-app-fluid"
-  }, /* @__PURE__ */ React.createElement(arco.Grid.Row, {
+  }, React.createElement(arco.Grid.Row, {
     guides: [1, 1],
     style: { height: "100vh" }
-  }, /* @__PURE__ */ React.createElement(arco.Grid.Col, {
+  }, React.createElement(arco.Grid.Col, {
     flex: "260px"
-  }, /* @__PURE__ */ React.createElement(PageTreeView, null)), /* @__PURE__ */ React.createElement(arco.Divider, {
+  }, React.createElement(PageTreeView, null)), React.createElement(arco.Divider, {
     type: "vertical",
     style: { height: "100%" }
-  }), /* @__PURE__ */ React.createElement(arco.Grid.Col, {
+  }), React.createElement(arco.Grid.Col, {
     flex: "auto",
     style: { height: "100%", width: "600px" }
-  }, /* @__PURE__ */ React.createElement(PageGridView, null))));
+  }, React.createElement(PageGridView, null))));
 };
 var PageTreeView = () => {
   const TreeNodExtraAction = (props) => {
     const data = props.dataRef;
-    return /* @__PURE__ */ React.createElement(arco.Menu, {
-      style: { width: "100px", background: "#fff", border: "1px solid #e8e8e8" }
-    }, /* @__PURE__ */ React.createElement(arco.Menu.Item, {
+    return React.createElement(arco.Menu, {
+      style: {
+        width: "100px",
+        background: "#fff",
+        border: "1px solid #e8e8e8"
+      }
+    }, React.createElement(arco.Menu.Item, {
       key: "addBrother",
       onClick: () => {
         PageAction.addBrotherNode(data);
       }
-    }, "\u65B0\u589E\u540C\u7EA7"), /* @__PURE__ */ React.createElement(arco.Menu.Item, {
+    }, "\u65B0\u589E\u540C\u7EA7"), React.createElement(arco.Menu.Item, {
       key: "addChild",
       onClick: () => {
         PageAction.addChildNode(data);
       }
-    }, "\u65B0\u589E\u5B50\u7EA7"), /* @__PURE__ */ React.createElement(arco.Menu.Item, {
+    }, "\u65B0\u589E\u5B50\u7EA7"), React.createElement(arco.Menu.Item, {
       key: "edit",
       onClick: () => {
         PageAction.editNode(data);
       }
-    }, "\u7F16\u8F91"), /* @__PURE__ */ React.createElement(arco.Menu.Item, {
+    }, "\u7F16\u8F91"), React.createElement(arco.Menu.Item, {
       key: "remove",
       onClick: () => {
         PageAction.removeNode(data);
       }
-    }, "\u5220\u9664"), /* @__PURE__ */ React.createElement(arco.Menu.Item, {
+    }, "\u5220\u9664"), React.createElement(arco.Menu.Item, {
       key: "enable",
       onClick: () => {
         PageAction.enableNode(data);
       }
-    }, "\u542F\u7528"), /* @__PURE__ */ React.createElement(arco.Menu.Item, {
+    }, "\u542F\u7528"), React.createElement(arco.Menu.Item, {
       key: "disable",
       onClick: () => {
         PageAction.disableNode(data);
       }
-    }, "\u505C\u7528"), /* @__PURE__ */ React.createElement(arco.Menu.Item, {
+    }, "\u505C\u7528"), React.createElement(arco.Menu.Item, {
       key: "changeParent",
       onClick: () => {
         PageAction.changeParentNode(data);
@@ -162,12 +183,12 @@ var PageTreeView = () => {
     }, "\u53D8\u66F4\u7236\u7EA7"));
   };
   const renderTreeNodExtra = (node) => {
-    return /* @__PURE__ */ React.createElement(arco.Dropdown, {
-      droplist: /* @__PURE__ */ React.createElement(TreeNodExtraAction, {
+    return React.createElement(arco.Dropdown, {
+      droplist: React.createElement(TreeNodExtraAction, {
         dataRef: node.dataRef
       }),
       position: "bl"
-    }, /* @__PURE__ */ React.createElement(arcoicon.IconMore, {
+    }, React.createElement(arcoicon.IconMore, {
       style: {
         position: "absolute",
         right: 8,
@@ -177,15 +198,15 @@ var PageTreeView = () => {
       }
     }));
   };
-  return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", {
+  return React.createElement("div", null, React.createElement("div", {
     style: { display: "block" }
-  }, /* @__PURE__ */ React.createElement(arco.Input.Search, {
+  }, React.createElement(arco.Input.Search, {
     searchButton: true,
     placeholder: "\u8BF7\u8F93\u5165",
     onSearch: (v) => {
       PageAction.findTreeData(v);
     }
-  })), /* @__PURE__ */ React.createElement(arco.Tree, {
+  })), React.createElement(arco.Tree, {
     treeData: PageState.treeData,
     blockNode: true,
     renderExtra: renderTreeNodExtra,
@@ -195,123 +216,127 @@ var PageTreeView = () => {
     },
     showLine: true,
     selectedKeys: PageState.selectTreeNodeKeys,
-    fieldNames: { key: "dictCode", title: "dictName", children: "dictChildren" }
+    fieldNames: {
+      key: "dictCode",
+      title: "dictName",
+      children: "dictChildren"
+    }
   }));
 };
 var PageGridView = () => {
-  return /* @__PURE__ */ React.createElement("div", {
+  return React.createElement("div", {
     className: "bmbp-grid-container"
-  }, /* @__PURE__ */ React.createElement(PageGridSearchForm, null), /* @__PURE__ */ React.createElement(PageGridToolBar, null), /* @__PURE__ */ React.createElement(PageGridTable, null), /* @__PURE__ */ React.createElement(PageGridPage, null));
+  }, React.createElement(PageGridSearchForm, null), React.createElement(PageGridToolBar, null), React.createElement(PageGridTable, null), React.createElement(PageGridPage, null));
 };
 var PageGridSearchForm = () => {
-  return /* @__PURE__ */ React.createElement("div", {
+  return React.createElement("div", {
     className: "bmbp-grid-search"
-  }, /* @__PURE__ */ React.createElement(arco.Form, {
+  }, React.createElement(arco.Form, {
     colon: true,
     ref: PageState.searchFormRef
-  }, /* @__PURE__ */ React.createElement(arco.Grid.Row, {
+  }, React.createElement(arco.Grid.Row, {
     guides: [1, 1]
-  }, /* @__PURE__ */ React.createElement(arco.Grid.Col, {
+  }, React.createElement(arco.Grid.Col, {
     span: 7
-  }, /* @__PURE__ */ React.createElement(arco.Form.Item, {
+  }, React.createElement(arco.Form.Item, {
     label: "\u522B\u540D",
     field: "dictAlias"
-  }, /* @__PURE__ */ React.createElement(arco.Input, {
+  }, React.createElement(arco.Input, {
     placeholder: "\u8BF7\u8F93\u5165\u522B\u540D"
-  }))), /* @__PURE__ */ React.createElement(arco.Grid.Col, {
+  }))), React.createElement(arco.Grid.Col, {
     span: 7
-  }, /* @__PURE__ */ React.createElement(arco.Form.Item, {
+  }, React.createElement(arco.Form.Item, {
     label: "\u540D\u79F0",
     field: "dictName"
-  }, /* @__PURE__ */ React.createElement(arco.Input, {
+  }, React.createElement(arco.Input, {
     placeholder: "\u8BF7\u8F93\u5165\u540D\u79F0"
-  }))), /* @__PURE__ */ React.createElement(arco.Grid.Col, {
+  }))), React.createElement(arco.Grid.Col, {
     span: 7
-  }, /* @__PURE__ */ React.createElement(arco.Form.Item, {
+  }, React.createElement(arco.Form.Item, {
     label: "\u72B6\u6001",
     field: "dataStatus"
-  }, /* @__PURE__ */ React.createElement(arco.Select, {
+  }, React.createElement(arco.Select, {
     placeholder: "\u8BF7\u9009\u62E9\u72B6\u6001"
-  }, /* @__PURE__ */ React.createElement(arco.Select.Option, {
+  }, React.createElement(arco.Select.Option, {
     key: "1",
     value: "1"
-  }, "\u5DF2\u542F\u7528"), /* @__PURE__ */ React.createElement(arco.Select.Option, {
+  }, "\u5DF2\u542F\u7528"), React.createElement(arco.Select.Option, {
     key: "0",
     value: "0"
-  }, "\u5DF2\u505C\u7528")))), /* @__PURE__ */ React.createElement(arco.Grid.Col, {
+  }, "\u5DF2\u505C\u7528")))), React.createElement(arco.Grid.Col, {
     span: 3
-  }, /* @__PURE__ */ React.createElement(arco.Form.Item, null, /* @__PURE__ */ React.createElement(arco.Space, null, /* @__PURE__ */ React.createElement(arco.Button, {
+  }, React.createElement(arco.Form.Item, null, React.createElement(arco.Space, null, React.createElement(arco.Button, {
     type: "primary",
     style: { marginLeft: "8px" },
     onClick: () => {
       let fromData = PageState.searchFormRef.current.getFieldsValue();
       PageAction.findGridData(fromData);
     }
-  }, "\u67E5\u8BE2"), /* @__PURE__ */ React.createElement(arco.Button, {
+  }, "\u67E5\u8BE2"), React.createElement(arco.Button, {
     onClick: () => {
       PageState.searchFormRef.current.resetFields();
     }
-  }, "\u6E05\u7A7A")))))), /* @__PURE__ */ React.createElement(arco.Divider, {
+  }, "\u6E05\u7A7A")))))), React.createElement(arco.Divider, {
     style: { margin: "0px 0 4px 0 " }
   }));
 };
 var PageGridToolBar = () => {
   debugger;
-  return /* @__PURE__ */ React.createElement("div", {
+  return React.createElement("div", {
     className: "bmbp-grid-toolbar"
-  }, /* @__PURE__ */ React.createElement("div", {
+  }, React.createElement("div", {
     className: "bmbp-grid-toolbar major"
-  }, PageState.selectTreeNodeData ? /* @__PURE__ */ React.createElement(arco.Button, {
+  }, PageState.selectTreeNodeData ? React.createElement(arco.Button, {
     type: "primary",
     onClick: () => {
       PageAction.addChildNode(PageState.selectTreeNodeData.dataRef);
     }
-  }, "\u65B0\u589E") : null, PageState.selectedRowKeys && PageState.selectedRowKeys.length > 0 ? /* @__PURE__ */ React.createElement(arco.Button, {
+  }, "\u65B0\u589E") : null, PageState.selectedRowKeys && PageState.selectedRowKeys.length > 0 ? React.createElement(arco.Button, {
     type: "primary",
     status: "danger",
     onClick: () => {
-      PageAction.bacthRemoveNode(PageState.selectedRowKeys);
+      PageAction.batchRemoveNode(PageState.selectedRowKeys);
     }
-  }, "\u5220\u9664") : null), /* @__PURE__ */ React.createElement("div", {
+  }, "\u5220\u9664") : null), React.createElement("div", {
     className: "bmbp-grid-toolbar extra"
-  }, /* @__PURE__ */ React.createElement(arco.Button, null, "\u5BFC\u5165"), /* @__PURE__ */ React.createElement(arco.Button, null, "\u5BFC\u51FA")));
+  }, React.createElement(arco.Button, null, "\u5BFC\u5165"), React.createElement(arco.Button, null, "\u5BFC\u51FA")));
 };
 var PageGridTable = () => {
   const enableAction = (record) => {
     return [
-      /* @__PURE__ */ React.createElement(arco.Tooltip, {
+      React.createElement(arco.Tooltip, {
         content: "\u65B0\u589E\u5B50\u7EA7"
-      }, /* @__PURE__ */ React.createElement(arco.Button, {
+      }, React.createElement(arco.Button, {
         type: "primary",
         status: "danger",
-        icon: /* @__PURE__ */ React.createElement(arcoicon.IconDelete, null),
+        icon: React.createElement(arcoicon.IconDelete, null),
         size: "mini",
         onClick: () => {
         }
       })),
-      /* @__PURE__ */ React.createElement(arco.Tooltip, {
+      React.createElement(arco.Tooltip, {
         content: "\u67E5\u770B"
-      }, /* @__PURE__ */ React.createElement(arco.Button, {
+      }, React.createElement(arco.Button, {
         type: "secondary",
-        icon: /* @__PURE__ */ React.createElement(arcoicon.IconView, null),
+        icon: React.createElement(arcoicon.IconView, null),
         size: "mini",
         onClick: () => {
         }
       })),
-      /* @__PURE__ */ React.createElement(arco.Tooltip, {
+      React.createElement(arco.Tooltip, {
         content: "\u505C\u7528"
-      }, /* @__PURE__ */ React.createElement(arco.Button, {
+      }, React.createElement(arco.Button, {
         type: "secondary",
-        icon: /* @__PURE__ */ React.createElement(arcoicon.IconEdit, null),
+        icon: React.createElement(arcoicon.IconEdit, null),
         size: "mini",
         onClick: () => {
         }
       })),
-      /* @__PURE__ */ React.createElement(arco.Tooltip, {
+      React.createElement(arco.Tooltip, {
         content: "\u53D8\u66F4\u4E0A\u7EA7"
-      }, /* @__PURE__ */ React.createElement(arco.Button, {
+      }, React.createElement(arco.Button, {
         type: "secondary",
-        icon: /* @__PURE__ */ React.createElement(arcoicon.IconEdit, null),
+        icon: React.createElement(arcoicon.IconEdit, null),
         size: "mini",
         onClick: () => {
         }
@@ -320,45 +345,45 @@ var PageGridTable = () => {
   };
   const disableAction = (record) => {
     return [
-      /* @__PURE__ */ React.createElement(arco.Tooltip, {
+      React.createElement(arco.Tooltip, {
         content: "\u7F16\u8F91"
-      }, /* @__PURE__ */ React.createElement(arco.Button, {
+      }, React.createElement(arco.Button, {
         type: "primary",
-        icon: /* @__PURE__ */ React.createElement(arcoicon.IconEdit, null),
+        icon: React.createElement(arcoicon.IconEdit, null),
         size: "mini",
         onClick: () => {
           PageAction.editNode(record);
         }
       })),
-      /* @__PURE__ */ React.createElement(arco.Tooltip, {
+      React.createElement(arco.Tooltip, {
         content: "\u542F\u7528"
-      }, /* @__PURE__ */ React.createElement(arco.Button, {
+      }, React.createElement(arco.Button, {
         type: "primary",
-        icon: /* @__PURE__ */ React.createElement(arcoicon.IconPlayArrow, null),
+        icon: React.createElement(arcoicon.IconPlayArrow, null),
         size: "mini",
         onClick: () => {
         }
       })),
-      /* @__PURE__ */ React.createElement(arco.Tooltip, {
+      React.createElement(arco.Tooltip, {
         content: "\u53D8\u66F4\u4E0A\u7EA7"
-      }, /* @__PURE__ */ React.createElement(arco.Button, {
+      }, React.createElement(arco.Button, {
         type: "secondary",
-        icon: /* @__PURE__ */ React.createElement(arcoicon.IconEdit, null),
+        icon: React.createElement(arcoicon.IconEdit, null),
         size: "mini",
         onClick: () => {
         }
       })),
-      /* @__PURE__ */ React.createElement(arco.Tooltip, {
+      React.createElement(arco.Tooltip, {
         content: "\u65B0\u589E\u5B50\u7EA7"
-      }, /* @__PURE__ */ React.createElement(arco.Button, {
+      }, React.createElement(arco.Button, {
         type: "secondary",
-        icon: /* @__PURE__ */ React.createElement(arcoicon.IconPlus, null),
+        icon: React.createElement(arcoicon.IconPlus, null),
         size: "mini",
         onClick: () => {
           PageAction.addChildNode(record);
         }
       })),
-      /* @__PURE__ */ React.createElement(arco.Popconfirm, {
+      React.createElement(arco.Popconfirm, {
         focusLock: true,
         title: "\u5220\u9664\u786E\u8BA4",
         content: "\u6570\u636E\u5220\u9664\u540E\u65E0\u6CD5\u6062\u590D\uFF0C\u786E\u5B9A\u5220\u9664\u5417?",
@@ -367,12 +392,12 @@ var PageGridTable = () => {
         },
         onCancel: () => {
         }
-      }, /* @__PURE__ */ React.createElement(arco.Tooltip, {
+      }, React.createElement(arco.Tooltip, {
         content: "\u5220\u9664"
-      }, /* @__PURE__ */ React.createElement(arco.Button, {
+      }, React.createElement(arco.Button, {
         type: "primary",
         status: "danger",
-        icon: /* @__PURE__ */ React.createElement(arcoicon.IconDelete, null),
+        icon: React.createElement(arcoicon.IconDelete, null),
         size: "mini",
         onClick: () => {
           PageAction.editNode(record);
@@ -411,11 +436,11 @@ var PageGridTable = () => {
       width: 80,
       render: (value) => {
         if (value == 1) {
-          return /* @__PURE__ */ React.createElement(arco.Tag, {
+          return React.createElement(arco.Tag, {
             color: "green"
           }, "\u5DF2\u542F\u7528");
         } else {
-          return /* @__PURE__ */ React.createElement(arco.Tag, {
+          return React.createElement(arco.Tag, {
             color: "red"
           }, "\u5DF2\u505C\u7528");
         }
@@ -428,7 +453,7 @@ var PageGridTable = () => {
       fixed: "right",
       align: "center",
       render: (value, record, index) => {
-        return /* @__PURE__ */ React.createElement(arco.Space, null, record.dataStatus == 1 ? enableAction(record) : disableAction(record));
+        return React.createElement(arco.Space, null, record.dataStatus == 1 ? enableAction(record) : disableAction(record));
       }
     }
   ];
@@ -444,9 +469,9 @@ var PageGridTable = () => {
       PageState.setSelectedRows(selectedRows);
     }
   };
-  return /* @__PURE__ */ React.createElement("div", {
+  return React.createElement("div", {
     className: "bmbp-grid-table"
-  }, /* @__PURE__ */ React.createElement(arco.Table, {
+  }, React.createElement(arco.Table, {
     columns: gridColumn,
     data: PageState.gridData,
     rowSelection: gridRowSelection,
@@ -459,9 +484,9 @@ var PageGridTable = () => {
   }));
 };
 var PageGridPage = () => {
-  return /* @__PURE__ */ React.createElement("div", {
+  return React.createElement("div", {
     className: "bmbp-grid-page"
-  }, /* @__PURE__ */ React.createElement(arco.Pagination, {
+  }, React.createElement(arco.Pagination, {
     size: PageState.showPageSize,
     total: PageState.pageData.total,
     showTotal: true,
