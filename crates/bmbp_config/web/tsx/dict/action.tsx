@@ -19,6 +19,8 @@ interface PageStateModel {
   setShowPageSize?: any;
   pageData?: any;
   setPageData?: any;
+  addFormDialogVisible: boolean;
+  setAddFormDialogVisible?: any;
 }
 // 全局状态
 export const PageState: PageStateModel = {};
@@ -128,6 +130,7 @@ export const PageAction = {
     console.log("addDict");
   },
   addChildNode: (node) => {
+    PageState.setAddFormDialogVisible(true);
     console.log("addDict");
   },
   editNode: (node) => {
