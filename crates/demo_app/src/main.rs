@@ -21,7 +21,7 @@ pub async fn build_orm() -> RdbcOrm {
         .set_database(Some("bmbp".to_string()))
         .set_port(Some(5432))
         .set_username(Some("bmbp".to_string()))
-        .set_password(Some("zgk0130!".to_string()));
+        .set_password(Some("".to_string()));
     match RdbcOrm::new(ds).await {
         Ok(orm) => {
             tracing::info!("初始化数据库成功");
