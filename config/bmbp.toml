@@ -1,0 +1,20 @@
+[bmbp.app]
+code = "bmbp"
+name = "BMBP"
+login_name = "BMBP"
+nav_name = "BMBP"
+copy_right = "BMBP"
+
+[bmbp.server]
+host = "127.0.0.1"
+port = 10031
+env = "prod"
+log_level = "info"
+
+[bmbp.datasource]
+driver = "postgres"
+host = "127.0.0.1"
+port = 1532
+username = "bmbp"
+password = "zgk0130!"
+init_size = 5

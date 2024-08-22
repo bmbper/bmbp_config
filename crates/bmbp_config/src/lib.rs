@@ -16,7 +16,26 @@ pub fn build_bmbp_config_router() -> Router {
     let action_router = Router::with_path("/bmbp/config/action").push(
         Router::with_path("dict")
             .push(Router::with_path("find_tree.action").post(find_dict_tree))
-            .push(Router::with_path("find_page.action").post(find_dict_page)),
+            .push(Router::with_path("find_page.action").post(find_dict_page))
+            .push(Router::with_path("find_list.action").post(find_dict_list))
+            .push(Router::with_path("find_info.action").post(find_dict_info))
+            .push(Router::with_path("find_ignore_tree.action").post(find_dict_tree_ignore))
+            .push(Router::with_path("save.action").post(save_dict))
+            .push(Router::with_path("insert.action").post(insert_dict))
+            .push(Router::with_path("update.action").post(update_dict))
+            .push(Router::with_path("enable.action").post(enable_dict))
+            .push(Router::with_path("batch_enable.action").post(batch_enable_dict))
+            .push(Router::with_path("disable.action").post(disable_dict))
+            .push(Router::with_path("batch_disable.action").post(batch_disable_dict))
+            .push(Router::with_path("remove.action").post(remove_dict))
+            .push(Router::with_path("batch_remove.action").post(batch_remove_dict))
+            .push(Router::with_path("update_parent.action").post(update_parent))
+            .push(Router::with_path("update_order.action").post(update_order))
+            .push(Router::with_path("find_combo.action").post(find_dict_combo))
+            .push(Router::with_path("find_combos.action").post(find_dict_combos))
+            .push(Router::with_path("find_display.action").post(find_dict_display))
+            .push(Router::with_path("find_displays.action").post(find_dict_displays))
+        ,
     );
     router = router.push(action_router);
 

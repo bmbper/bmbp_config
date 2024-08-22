@@ -5,7 +5,7 @@ use std::sync::LazyLock;
 use tera::Tera;
 
 #[derive(RustEmbed)]
-#[folder = "web/tmplate"]
+#[folder = "web/template"]
 pub(crate) struct PageAssets;
 
 pub(crate) static CTX_TERA: LazyLock<Tera> = LazyLock::new(|| {

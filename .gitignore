@@ -7,3 +7,4 @@ Cargo.lock
 .idea
 .vscode
 .gitconfig
+crates/bmbp_app_util

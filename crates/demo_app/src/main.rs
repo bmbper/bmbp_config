@@ -1,15 +1,58 @@
+use async_static::async_static;
+use bmbp_auth::BmbpUser;
+use bmbp_http_type::{BmbpResp, RespVo};
 use bmbp_lib_ui::build_bmbp_ui_lib_router;
+use bmbp_rdbc_orm::{RdbcOrm, RdbcResult};
+use bmbp_rdbc_type::{RdbcDataBase, RdbcDataSource};
 use bmbp_config::build_bmbp_config_router;
 use salvo::prelude::*;
+use tracing::callsite::register;
+use tracing_subscriber::fmt::init;
+use tracing_subscriber::util::SubscriberInitExt;
+use bmbp_app_util::{auth_token_middle, auth_user_middle, BMBP_CURRENT_ORM, BMBP_CURRENT_USER, orm_middle, register_app_orm};
+async_static! {
+    pub static ref RdbcOrmIns:RdbcOrm = build_orm().await;
+}
+
+pub async fn build_orm() -> RdbcOrm {
+    let mut ds = RdbcDataSource::new();
+    ds.set_typ(RdbcDataBase::Postgres)
+        .set_host(Some("127.0.0.1".to_string()))
+        .set_database(Some("bmbp".to_string()))
+        .set_port(Some(5432))
+        .set_username(Some("bmbp".to_string()))
+        .set_password(Some("zgk0130!".to_string()));
+    match RdbcOrm::new(ds).await {
+        Ok(orm) => {
+            tracing::info!("初始化数据库成功");
+            orm
+        }
+        Err(err) => {
+            panic!("初始化数据库失败:{}", err.get_msg())
+        }
+    }
+}
+
+pub async fn init_orm() {
+    let rs = RdbcOrmIns.await;
+    register_app_orm(rs);
+}
+
+#[handler]
+pub async fn login(resp: &mut Response) -> BmbpResp<RespVo<String>> {
+    return Ok(RespVo::<String>::ok_data_msg(Some("hello".to_string()), "".to_string()));
+}
 
 #[tokio::main]
 async fn main() {
+    init_orm().await;
     tracing_subscriber::fmt().init();
     let host = "0.0.0.0:9002";
     tracing::info!("启动初始化服务,监听地址:{}......", host);
     let acceptor = TcpListener::new(host).bind().await;
-    let mut router = Router::new();
+    let mut router = Router::new().hoop(auth_token_middle).hoop(auth_user_middle).hoop(orm_middle);
     router = router.push(build_bmbp_ui_lib_router());
     router = router.push(build_bmbp_config_router());
+    router = router.push(Router::with_path("login").post(login));
     Server::new(acceptor).serve(router).await;
 }
