@@ -13,12 +13,13 @@ repository = "https://github.com/bmbper/bmbp_config"
 documentation = "https://github.com/bmbper/bmbp_config"
 [workspace.dependencies]
 bmbp_config = { version = "0.0.0", path = "crates/bmbp_config" }
-bmbp_app_util = {version = "0.0.1",path = "crates/bmbp_app_util"}
+bmbp_app_util = { version = "0.0.2", path = "crates/bmbp_app_util" }
 demmo_app = { version = "0.0.0", path = "crates/demo_app" }
 
 # 宏
-bmbp_marco_bean = "0.0.7"
-bmbp_marco_rdbc = "0.0.7"
+bmbp_marco_bean = "0.0.8"
+bmbp_marco_rdbc = "0.0.10"
+bmbp_util = "0.0.3"
 # 静态资源
 bmbp_lib_ui = "0.1.5"
 # 认证信息
@@ -30,6 +31,7 @@ bmbp_http_type = "0.0.6"
 # 数据库类型
 bmbp_rdbc_type = "0.2.5"
 bmbp_rdbc_orm = "0.2.5"
+
 
 
 rust-embed = "8.5.0"

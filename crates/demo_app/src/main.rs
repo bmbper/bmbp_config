@@ -1,5 +1,6 @@
 use async_static::async_static;
 use bmbp_auth::BmbpUser;
+use bmbp_ctx_vars::BMBP_CONTEXT_VARS;
 use bmbp_http_type::{BmbpResp, RespVo};
 use bmbp_lib_ui::build_bmbp_ui_lib_router;
 use bmbp_rdbc_orm::{RdbcOrm, RdbcResult};
@@ -9,11 +10,12 @@ use salvo::prelude::*;
 use tracing::callsite::register;
 use tracing_subscriber::fmt::init;
 use tracing_subscriber::util::SubscriberInitExt;
-use bmbp_app_util::{auth_token_middle, auth_user_middle, BMBP_CURRENT_ORM, BMBP_CURRENT_USER, orm_middle, register_app_orm};
+use bmbp_app_util::{auth_token_middle, auth_user_middle, BMBP_CURRENT_ORM, BMBP_CURRENT_USER, BMBP_WHITE_URLS, orm_middle, register_app_orm};
+
+
 async_static! {
     pub static ref RdbcOrmIns:RdbcOrm = build_orm().await;
 }
-
 pub async fn build_orm() -> RdbcOrm {
     let mut ds = RdbcDataSource::new();
     ds.set_typ(RdbcDataBase::Postgres)
@@ -32,19 +34,15 @@ pub async fn build_orm() -> RdbcOrm {
         }
     }
 }
-
 pub async fn init_orm() {
     let rs = RdbcOrmIns.await;
     register_app_orm(rs);
 }
 
-#[handler]
-pub async fn login(resp: &mut Response) -> BmbpResp<RespVo<String>> {
-    return Ok(RespVo::<String>::ok_data_msg(Some("hello".to_string()), "".to_string()));
-}
 
 #[tokio::main]
 async fn main() {
+    init_white_urls();
     init_orm().await;
     tracing_subscriber::fmt().init();
     let host = "0.0.0.0:9002";
@@ -53,6 +51,9 @@ async fn main() {
     let mut router = Router::new().hoop(auth_token_middle).hoop(auth_user_middle).hoop(orm_middle);
     router = router.push(build_bmbp_ui_lib_router());
     router = router.push(build_bmbp_config_router());
-    router = router.push(Router::with_path("login").post(login));
     Server::new(acceptor).serve(router).await;
+}
+
+fn init_white_urls() {
+    (&*BMBP_CONTEXT_VARS).set_value(BMBP_WHITE_URLS.to_string(),"/<**>");
 }

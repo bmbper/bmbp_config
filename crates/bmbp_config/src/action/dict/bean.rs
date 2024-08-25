@@ -4,6 +4,7 @@ use bmbp_marco_rdbc::table_rdbc_tree_bean_orm_option;
 use bmbp_rdbc_type::RdbcIdent;
 use bmbp_rdbc_type::RdbcOrmRow;
 use bmbp_rdbc_type::RdbcTable;
+use bmbp_util::BmbpTree;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -18,13 +19,25 @@ pub struct BmbpVars {
     var_value: Option<String>,
 }
 
-
 #[bean]
 pub struct BmbpCombo {
     label: Option<String>,
     value: Option<String>,
     children: Vec<BmbpCombo>,
 }
+
 pub(crate) type BmbpCombos = HashMap<String, Vec<BmbpCombo>>;
 pub(crate) type BmbpDisplay = HashMap<String, String>;
 pub(crate) type BmbpDisplays = HashMap<String, BmbpDisplay>;
+
+
+#[bean]
+pub struct BatchReqVo {
+    ids: Option<Vec<String>>,
+}
+
+#[bean]
+pub struct BatchComboVo {
+    codes: Option<Vec<String>>,
+    cascade: Option<String>,
+}
