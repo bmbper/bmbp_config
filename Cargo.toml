@@ -13,13 +13,14 @@ repository = "https://github.com/bmbper/bmbp_config"
 documentation = "https://github.com/bmbper/bmbp_config"
 [workspace.dependencies]
 bmbp_config = { version = "0.0.0", path = "crates/bmbp_config" }
-bmbp_app_util = { version = "0.0.2", path = "crates/bmbp_app_util" }
+
 demmo_app = { version = "0.0.0", path = "crates/demo_app" }
 
 # 宏
 bmbp_marco_bean = "0.0.8"
 bmbp_marco_rdbc = "0.0.10"
 bmbp_util = "0.0.3"
+bmbp_app_util = "0.0.2"
 # 静态资源
 bmbp_lib_ui = "0.1.5"
 # 认证信息
