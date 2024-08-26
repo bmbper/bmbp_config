@@ -1,12 +1,12 @@
+use bmbp_app_util::{parse_orm, parse_user_orm};
 use bmbp_http_type::{BmbpPageReq, BmbpResp, BmbpRespErr, PageData};
-use bmbp_rdbc_orm::{DeleteWrapper, InsertWrapper, QueryWrapper, RdbcResult, RdbcTableFilter, RdbcTableWrapper, UpdateWrapper};
-use bmbp_rdbc_type::RdbcTable;
-use bmbp_util::{BmbpId, BmbpTreeUtil};
-use salvo::Depot;
+use bmbp_rdbc_orm::{DeleteWrapper, InsertWrapper, QueryWrapper, RdbcOrm, RdbcTableFilter, RdbcTableWrapper, UpdateWrapper};
 use bmbp_rdbc_type::RdbcIdent;
-use bmbp_app_util::parse_orm;
+use bmbp_rdbc_type::RdbcTable;
+use bmbp_util::{BMBP_TREE_ROOT_NODE, BmbpId, BmbpTreeUtil, current_time};
+use salvo::Depot;
 
-use crate::action::dict::bean::{BatchComboVo, BatchReqVo, BmbpCombo, BmbpCombos, BmbpDict, BmbpDictColumn, BmbpDisplay, BmbpDisplays};
+use crate::action::dict::bean::{BatchComboVo, BatchReqVo, BmbpCombo, BmbpCombos, BmbpDict, BmbpDictColumn, BmbpDisplay};
 
 pub struct BmbpDictService;
 
@@ -79,10 +79,7 @@ impl BmbpDictService {
 
     pub(crate) async fn find_dict_info(depot: &mut Depot, params: Option<&String>) -> BmbpResp<Option<BmbpDict>> {
         let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
-        if params.is_none() || params.as_ref().unwrap().is_empty() {
-            return Err(BmbpRespErr::err(Some("VALID".to_string()), Some("请传入字典标识".to_string())));
-        }
-        query_wrapper.eq_(BmbpDictColumn::DataId, params.unwrap().clone());
+        query_wrapper.eq_(BmbpDictColumn::DataId, params);
         let orm = parse_orm(depot)?;
         match orm.select_one_by_query::<BmbpDict>(&query_wrapper).await {
             Ok(dict) => {
@@ -99,6 +96,22 @@ impl BmbpDictService {
         }
         let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
         query_wrapper.eq_(BmbpDictColumn::DictAlias, alias.unwrap().clone());
+        let orm = parse_orm(depot)?;
+        match orm.select_one_by_query::<BmbpDict>(&query_wrapper).await {
+            Ok(dict) => {
+                Ok(dict)
+            }
+            Err(err) => {
+                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
+            }
+        }
+    }
+    pub(crate) async fn find_dict_info_by_code(depot: &mut Depot, code: Option<&String>) -> BmbpResp<Option<BmbpDict>> {
+        if code.is_none() || code.as_ref().unwrap().is_empty() {
+            return Ok(None);
+        }
+        let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
+        query_wrapper.eq_(BmbpDictColumn::DictCode, code.unwrap().clone());
         let orm = parse_orm(depot)?;
         match orm.select_one_by_query::<BmbpDict>(&query_wrapper).await {
             Ok(dict) => {
@@ -139,9 +152,78 @@ impl BmbpDictService {
         if params.get_data_id().is_none() {
             params.set_data_id(Some(BmbpId::simple_uuid()));
         }
-        let insert_wrapper = InsertWrapper::new();
-        let orm = parse_orm(depot)?;
-        return match orm.execute_insert(&insert_wrapper).await {
+
+        if params.get_dict_alias().as_ref().is_none() || params.get_dict_alias().as_ref().unwrap().is_empty() {
+            return Err(BmbpRespErr::err(Some("VALID".to_string()), Some("请传入字典别名".to_string())));
+        }
+        if params.get_dict_name().as_ref().is_none() || params.get_dict_name().as_ref().unwrap().is_empty() {
+            return Err(BmbpRespErr::err(Some("VALID".to_string()), Some("请传入字典名称".to_string())));
+        }
+        if params.get_dict_value().as_ref().is_none() || params.get_dict_value().as_ref().unwrap().is_empty() {
+            return Err(BmbpRespErr::err(Some("VALID".to_string()), Some("请传入字典值".to_string())));
+        }
+        if params.get_dict_parent_code().as_ref().is_none() || params.get_dict_parent_code().as_ref().unwrap().is_empty() {
+            params.set_dict_parent_code(Some(BMBP_TREE_ROOT_NODE.to_string()));
+        }
+
+        let dict_code = BmbpId::simple_uuid();
+        params.set_dict_code(Some(dict_code.clone()));
+        let dict_name = params.get_dict_name().clone().unwrap_or("".to_string());
+        if let Some(parent_node) = Self::find_dict_info_by_code(depot, params.get_dict_parent_code().as_ref()).await? {
+            let parent_code_path = parent_node.get_dict_code_path().clone().unwrap_or("".to_string());
+            let parent_name_path = parent_node.get_dict_name_path().clone().unwrap_or("".to_string());
+            if parent_code_path.is_empty() || parent_name_path.is_empty() {
+                return Err(BmbpRespErr::err(Some("VALID".to_string()), Some("父级节点信息异常,请联系管理员".to_string())));
+            }
+            params.set_dict_parent_code(Some(format!("{}{},", parent_code_path, dict_code)));
+            params.set_dict_code_path(Some(format!("{}{},", parent_name_path, dict_name)));
+        } else {
+            params.set_dict_code_path(Some(format!("{},{},", params.get_dict_parent_code().as_ref().unwrap(), dict_code)));
+            params.set_dict_name_path(Some(format!("{},{},", params.get_dict_parent_code().as_ref().unwrap(), dict_name)));
+        }
+        // tree_grade;
+        let tree_grade = params.get_dict_code_path().as_ref().unwrap().split(",").count() - 1;
+        params.set_dict_tree_grade(Some(tree_grade as u32));
+        let (user, orm) = parse_user_orm(depot);
+        // 校验别名是否重复
+        Self::check_save_alias(orm.unwrap(), params.get_dict_alias().clone().as_ref().unwrap()).await?;
+        Self::check_save_name(orm.unwrap(), params.get_dict_parent_code().clone().unwrap(), params.get_dict_name().clone().unwrap(), params.get_data_id().clone()).await?;
+        Self::check_save_value(orm.unwrap(), params.get_dict_parent_code().clone().unwrap(), params.get_dict_value().clone().unwrap(), params.get_data_id().clone()).await?;
+
+        let mut insert_wrapper = InsertWrapper::new();
+        insert_wrapper.table(BmbpDict::get_table().get_ident());
+
+        insert_wrapper.insert_column_value(BmbpDictColumn::DictCode.get_ident(), params.get_dict_code().as_ref().unwrap());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DictParentCode.get_ident(), params.get_dict_parent_code().as_ref().unwrap());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DictName.get_ident(), params.get_dict_name().as_ref().unwrap());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DictCodePath.get_ident(), params.get_dict_code_path().as_ref().unwrap());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DictNamePath.get_ident(), params.get_dict_name_path().as_ref().unwrap());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DictTreeGrade.get_ident(), params.get_dict_tree_grade().unwrap_or(1));
+        insert_wrapper.insert_column_value(BmbpDictColumn::DictAlias.get_ident(), params.get_dict_alias().as_ref().unwrap());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DictValue.get_ident(), params.get_dict_value().as_ref().unwrap());
+
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataId.get_ident(), params.get_data_id().as_ref().unwrap());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataLevel.get_ident(), params.get_data_level().clone().unwrap_or("0".to_string()));
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataFlag.get_ident(), params.get_data_flag().clone().unwrap_or("0".to_string()));
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataSort.get_ident(), params.get_data_sort().unwrap_or(0));
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataStatus.get_ident(), params.get_data_status().clone().unwrap_or("0".to_string()));
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataCreateTime.get_ident(), current_time());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataUpdateTime.get_ident(), current_time());
+        let current_user = match user {
+            Some(u) => {
+                u.get_id().clone().unwrap_or("".to_string())
+            }
+            None => {
+                "".to_string()
+            }
+        };
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataCreateUser.get_ident(), current_user.clone());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataUpdateUser.get_ident(), current_user.clone());
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataOwnerOrg.get_ident(), "");
+        insert_wrapper.insert_column_value(BmbpDictColumn::DataSign.get_ident(), "");
+
+
+        return match orm.unwrap().execute_insert(&insert_wrapper).await {
             Ok(_) => {
                 Self::find_dict_info(depot, params.get_data_id().as_ref()).await
             }
@@ -403,6 +485,58 @@ impl BmbpDictService {
         let display = BmbpDisplay::new();
         // TODO
         Ok(Some(display))
+    }
+    async fn check_save_alias(orm: &RdbcOrm, dict_alias: &String) -> BmbpResp<()> {
+        let mut query = QueryWrapper::new_from::<BmbpDict>();
+        query.eq_(BmbpDictColumn::DictAlias, dict_alias.clone());
+        return match orm.select_one_by_query::<BmbpDict>(&query).await {
+            Ok(dict) => {
+                if dict.is_some() {
+                    Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("字典别名已存在".to_string())))
+                } else {
+                    Ok(())
+                }
+            }
+            Err(err) => {
+                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
+            }
+        };
+    }
+    async fn check_save_name(orm: &RdbcOrm, parent_code: String, dict_name: String, data_id: Option<String>) -> BmbpResp<()> {
+        let mut query = QueryWrapper::new_from::<BmbpDict>();
+        query.eq_(BmbpDictColumn::DictName, dict_name.clone());
+        query.eq_(BmbpDictColumn::DictParentCode, parent_code.clone());
+        query.ne_(BmbpDictColumn::DataId, data_id.clone());
+        return match orm.select_one_by_query::<BmbpDict>(&query).await {
+            Ok(dict) => {
+                if dict.is_some() {
+                    Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("字典名称已存在".to_string())))
+                } else {
+                    Ok(())
+                }
+            }
+            Err(err) => {
+                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
+            }
+        };
+    }
+    async fn check_save_value(orm: &RdbcOrm, parent_code: String, dict_value: String, data_id: Option<String>) -> BmbpResp<()> {
+        let mut query = QueryWrapper::new_from::<BmbpDict>();
+        query.eq_(BmbpDictColumn::DictValue, dict_value.clone());
+        query.eq_(BmbpDictColumn::DictParentCode, parent_code.clone());
+        query.ne_(BmbpDictColumn::DataId, data_id.clone());
+        return match orm.select_one_by_query::<BmbpDict>(&query).await {
+            Ok(dict) => {
+                if dict.is_some() {
+                    Err(BmbpRespErr::err(Some("VALID".to_string()), Some("字典值已存在".to_string())))
+                } else {
+                    Ok(())
+                }
+            }
+            Err(err) => {
+                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
+            }
+        };
     }
 }
 
