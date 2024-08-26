@@ -182,7 +182,7 @@ impl BmbpDictService {
             params.set_dict_name_path(Some(format!("{},{},", params.get_dict_parent_code().as_ref().unwrap(), dict_name)));
         }
         // tree_grade;
-        let tree_grade = params.get_dict_code_path().as_ref().unwrap().split(",").count() - 1;
+        let tree_grade = params.get_dict_code_path().as_ref().unwrap().split(",").count() - 2;
         params.set_dict_tree_grade(Some(tree_grade as u32));
         let (user, orm) = parse_user_orm(depot);
         // 校验别名是否重复
