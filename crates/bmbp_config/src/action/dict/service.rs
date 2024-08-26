@@ -186,7 +186,7 @@ impl BmbpDictService {
         params.set_dict_tree_grade(Some(tree_grade as u32));
         let (user, orm) = parse_user_orm(depot);
         // 校验别名是否重复
-        Self::check_save_alias(orm.unwrap(), params.get_dict_alias().clone().as_ref().unwrap()).await?;
+        Self::check_save_alias(orm.unwrap(), params.get_dict_alias().clone().as_ref().unwrap(), params.get_data_id().clone()).await?;
         Self::check_save_name(orm.unwrap(), params.get_dict_parent_code().clone().unwrap(), params.get_dict_name().clone().unwrap(), params.get_data_id().clone()).await?;
         Self::check_save_value(orm.unwrap(), params.get_dict_parent_code().clone().unwrap(), params.get_dict_value().clone().unwrap(), params.get_data_id().clone()).await?;
 
@@ -486,9 +486,10 @@ impl BmbpDictService {
         // TODO
         Ok(Some(display))
     }
-    async fn check_save_alias(orm: &RdbcOrm, dict_alias: &String) -> BmbpResp<()> {
+    async fn check_save_alias(orm: &RdbcOrm, dict_alias: &String,data_id: Option<String>) -> BmbpResp<()> {
         let mut query = QueryWrapper::new_from::<BmbpDict>();
         query.eq_(BmbpDictColumn::DictAlias, dict_alias.clone());
+        query.ne_(BmbpDictColumn::DataId, data_id.clone());
         return match orm.select_one_by_query::<BmbpDict>(&query).await {
             Ok(dict) => {
                 if dict.is_some() {
