@@ -1,4 +1,4 @@
-use bmbp_app_util::{parse_orm, parse_user_orm};
+use bmbp_app_util::{parse_orm, parse_user, parse_user_orm};
 use bmbp_http_type::{BmbpPageReq, BmbpResp, BmbpRespErr, PageData};
 use bmbp_rdbc_orm::{DeleteWrapper, InsertWrapper, QueryWrapper, RdbcOrm, RdbcTableFilter, RdbcTableWrapper, UpdateWrapper};
 use bmbp_rdbc_type::RdbcIdent;
@@ -238,10 +238,80 @@ impl BmbpDictService {
         if params.get_data_id().is_none() {
             return Err(BmbpRespErr::err(Some("VALID".to_string()), Some("请传入字典标识".to_string())));
         }
-        let update_wrapper = UpdateWrapper::new();
+        let mut old_dict_name = "".to_string();
+        let mut old_dict_parent_code = "".to_string();
+        let mut old_dict_code_path = "".to_string();
+        if let Some(mut dict_info) = Self::find_dict_info(depot, params.get_data_id().as_ref()).await? {
+            old_dict_parent_code = dict_info.get_dict_parent_code().clone().unwrap();
+            old_dict_name = dict_info.get_dict_name().clone().unwrap();
+            old_dict_code_path = dict_info.get_dict_code_path().clone().unwrap();
+
+            if params.get_dict_code().is_none() {
+                params.set_dict_code(dict_info.get_dict_code().clone());
+            }
+            if params.get_dict_parent_code().is_none() {
+                params.set_dict_parent_code(dict_info.get_dict_parent_code().clone());
+            }
+            if params.get_dict_name().is_none() {
+                params.set_dict_name(dict_info.get_dict_name().clone());
+            }
+            if params.get_dict_alias().is_none() {
+                params.set_dict_alias(dict_info.get_dict_alias().clone());
+            }
+            if params.get_dict_value().is_none() {
+                params.set_dict_value(dict_info.get_dict_value().clone());
+            }
+            if params.get_data_sort().is_none(){
+                params.set_data_sort(dict_info.get_data_sort().clone());
+            }
+
+        } else {
+            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("未找到字典信息".to_string())));
+        }
+
+        let mut dict_code_path = "".to_string();
+        let mut dict_name_path = "".to_string();
+        if let Some(parent_node) = Self::find_dict_info_by_code(depot, params.get_dict_parent_code().as_ref()).await? {
+            dict_code_path = format!("{},{},", parent_node.get_dict_code_path().clone().unwrap(), parent_node.get_dict_name_path().clone().unwrap());
+            dict_name_path = format!("{},{},", parent_node.get_dict_name_path().clone().unwrap(), params.get_dict_name().as_ref().unwrap());
+        } else {
+            if params.get_dict_parent_code().as_ref().unwrap() == BMBP_TREE_ROOT_NODE {
+                dict_code_path = format!("{},{},", BMBP_TREE_ROOT_NODE.to_string(), params.get_dict_code().as_ref().unwrap());
+                dict_name_path = format!("{},{},", BMBP_TREE_ROOT_NODE.to_string(), params.get_dict_name().as_ref().unwrap());
+            } else {
+                return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("未找到上级字典信息".to_string())));
+            }
+        }
+        let tree_grade = params.get_dict_code_path().as_ref().unwrap().split(",").count() - 2;
+        params.set_dict_tree_grade(Some(tree_grade as u32));
+
+        // 校验别名是否重复
         let orm = parse_orm(depot)?;
+        Self::check_save_alias(orm.unwrap(), params.get_dict_alias().clone().as_ref().unwrap(), params.get_data_id().clone()).await?;
+        Self::check_save_name(orm.unwrap(), params.get_dict_parent_code().clone().unwrap(), params.get_dict_name().clone().unwrap(), params.get_data_id().clone()).await?;
+        Self::check_save_value(orm.unwrap(), params.get_dict_parent_code().clone().unwrap(), params.get_dict_value().clone().unwrap(), params.get_data_id().clone()).await?;
+
+
+        let mut update_wrapper = UpdateWrapper::new();
+        update_wrapper.table(BmbpDict::get_table().get_ident());
+        update_wrapper.set(BmbpDictColumn::DictCode, params.get_dict_code().as_ref().unwrap());
+        update_wrapper.set(BmbpDictColumn::DictParentCode, params.get_dict_parent_code().as_ref().unwrap());
+        update_wrapper.set(BmbpDictColumn::DictName, params.get_dict_name().as_ref().unwrap());
+        update_wrapper.set(BmbpDictColumn::DictAlias, params.get_dict_alias().as_ref().unwrap());
+        update_wrapper.set(BmbpDictColumn::DictValue, params.get_dict_value().as_ref().unwrap());
+        update_wrapper.set(BmbpDictColumn::DictCodePath, dict_code_path);
+        update_wrapper.set(BmbpDictColumn::DictNamePath, dict_name_path);
+        update_wrapper.set(BmbpDictColumn::DictTreeGrade, params.get_dict_tree_grade().unwrap());
+        update_wrapper.set(BmbpDictColumn::DataSort, params.get_data_sort().unwrap());
+        update_wrapper.set(BmbpDictColumn::DataUpdateTime, current_time());
+        update_wrapper.set(BmbpDictColumn::DataUpdateUser, "");
+        update_wrapper.eq_(BmbpDictColumn::DataId, params.get_data_id().as_ref().unwrap());
+
         return match orm.execute_update(&update_wrapper).await {
             Ok(_) => {
+                if old_dict_name != params.get_dict_name().as_ref().unwrap() || old_dict_parent_code != params.get_dict_parent_code().as_ref().unwrap() {
+                    Self::update_children_dict_path(orm, old_dict_code_path).await?;
+                }
                 Self::find_dict_info(depot, params.get_data_id().as_ref()).await
             }
             Err(err) => {
@@ -320,16 +390,15 @@ impl BmbpDictService {
         Self::execute_update(depot, &update_wrapper).await
     }
 
-    pub(crate) async fn update_parent(depot: &mut Depot, params: &BmbpDict) -> BmbpResp<Option<u64>> {
-        let dict_info = Self::find_dict_info(depot, params.get_data_id().as_ref()).await?;
-        if dict_info.is_none() {
-            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("未找到字典信息".to_string())));
+    pub(crate) async fn update_parent(depot: &mut Depot, params: &mut BmbpDict) -> BmbpResp<Option<u64>> {
+        if params.get_dict_parent_code().is_none() || params.get_dict_parent_code().as_ref().unwrap().is_empty() {
+            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("字典父级不能为空".to_string())));
         }
-        let mut update_wrapper = UpdateWrapper::new();
-        update_wrapper.set(BmbpDictColumn::DataSort, params.get_data_sort().clone().unwrap_or(0i32));
-        update_wrapper.table(BmbpDict::get_table().get_ident());
-        update_wrapper.eq_(BmbpDictColumn::DataId, params.get_data_id().as_ref().unwrap());
-        Self::execute_update(depot, &update_wrapper).await
+        if params.get_data_id().is_none() || params.get_data_id().as_ref().unwrap().is_empty() {
+            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("字典标识不能为空".to_string())));
+        }
+        Self::update_dict(depot, params).await?;
+        Ok(Some(1))
     }
 
     pub(crate) async fn find_dict_combo(depot: &mut Depot, alias: Option<&String>, cascade: Option<&String>) -> BmbpResp<Option<Vec<BmbpCombo>>> {
@@ -486,7 +555,7 @@ impl BmbpDictService {
         // TODO
         Ok(Some(display))
     }
-    async fn check_save_alias(orm: &RdbcOrm, dict_alias: &String,data_id: Option<String>) -> BmbpResp<()> {
+    async fn check_save_alias(orm: &RdbcOrm, dict_alias: &String, data_id: Option<String>) -> BmbpResp<()> {
         let mut query = QueryWrapper::new_from::<BmbpDict>();
         query.eq_(BmbpDictColumn::DictAlias, dict_alias.clone());
         query.ne_(BmbpDictColumn::DataId, data_id.clone());
@@ -538,6 +607,12 @@ impl BmbpDictService {
                 Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
             }
         };
+    }
+    async fn update_children_dict_path(orm: &RdbcOrm, old_code_path: String) {
+        // let mut update_wrapper = UpdateWrapper::new();
+        // update_wrapper.set(BmbpDictColumn::DictCodePath, format!("{}", old_code_path.replace(",", "/")))
+        // update_wrapper.table(BmbpDict::get_table().get_ident());
+        // update_wrapper.like_left(BmbpDictColumn::DictCodePath, old_code_path);
     }
 }
 

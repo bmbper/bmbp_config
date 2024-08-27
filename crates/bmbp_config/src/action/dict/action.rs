@@ -179,8 +179,8 @@ pub async fn update_parent(
     resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<u64>> {
-    let params = req.parse_json::<BmbpDict>().await?;
-    let data = BmbpDictService::update_parent(depot, &params).await?;
+    let mut params = req.parse_json::<BmbpDict>().await?;
+    let data = BmbpDictService::update_parent(depot, &mut params).await?;
     Ok(RespVo::ok_data_msg(data, "更新上级字典成功!".to_string()))
 }
 
@@ -192,7 +192,7 @@ pub async fn find_dict_combo(
 ) -> BmbpResp<RespVo<Vec<BmbpCombo>>> {
     let code = req.query::<String>("code");
     let cascade = req.query::<String>("cascade");
-    let data = BmbpDictService::find_dict_combo(depot, code.as_ref(),cascade.as_ref()).await?;
+    let data = BmbpDictService::find_dict_combo(depot, code.as_ref(), cascade.as_ref()).await?;
     Ok(RespVo::ok_data_msg(data, "查询字典列表成功!".to_string()))
 }
 
@@ -215,7 +215,7 @@ pub async fn find_dict_display(
 ) -> BmbpResp<RespVo<BmbpDisplay>> {
     let code = req.query::<String>("code");
     let cascade = req.query::<String>("cascade");
-    let data = BmbpDictService::find_dict_display(depot, code.as_ref(),cascade.as_ref()).await?;
+    let data = BmbpDictService::find_dict_display(depot, code.as_ref(), cascade.as_ref()).await?;
     Ok(RespVo::ok_data_msg(data, "查询字典转码成功!".to_string()))
 }
 
