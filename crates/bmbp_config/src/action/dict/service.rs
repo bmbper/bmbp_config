@@ -1,4 +1,4 @@
-use bmbp_app_util::{parse_orm, parse_user, parse_user_orm};
+use bmbp_app_util::{parse_orm, parse_user_orm};
 use bmbp_http_type::{BmbpPageReq, BmbpResp, BmbpRespErr, PageData};
 use bmbp_rdbc_orm::{DeleteWrapper, InsertWrapper, QueryWrapper, RdbcColumn, RdbcOrm, RdbcTableFilter, RdbcTableWrapper, UpdateWrapper};
 use bmbp_rdbc_type::RdbcIdent;
