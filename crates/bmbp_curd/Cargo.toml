@@ -1,5 +1,5 @@
 [package]
-name = "bmbp_config"
+name = "bmbp_curd"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -21,7 +21,6 @@ bmbp_rdbc_orm = { workspace = true }
 bmbp_auth = { workspace = true }
 bmbp_app_util = { workspace = true }
 bmbp_util = { workspace = true }
-bmbp_curd = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_repr = { workspace = true }

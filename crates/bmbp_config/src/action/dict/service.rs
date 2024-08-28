@@ -1,10 +1,14 @@
+use std::path::Display;
 use bmbp_app_util::{parse_orm, parse_user_orm};
 use bmbp_http_type::{BmbpPageReq, BmbpResp, BmbpRespErr, PageData};
-use bmbp_rdbc_orm::{DeleteWrapper, InsertWrapper, QueryWrapper, RdbcColumn, RdbcOrm, RdbcTableFilter, RdbcTableWrapper, UpdateWrapper};
+use bmbp_rdbc_orm::{InsertWrapper, QueryWrapper, RdbcColumn, RdbcConcatType, RdbcOrm, RdbcTableFilter, RdbcTableFilterImpl, RdbcTableWrapper, UpdateWrapper};
 use bmbp_rdbc_type::RdbcIdent;
 use bmbp_rdbc_type::RdbcTable;
 use bmbp_util::{BMBP_TREE_ROOT_NODE, BmbpId, BmbpTreeUtil, current_time};
+use salvo::__private::tracing::field::display;
 use salvo::Depot;
+use serde_json::Value;
+use bmbp_curd::{BmbpCurdDao, BmbpCurdService};
 
 use crate::action::dict::bean::{BatchComboVo, BatchReqVo, BmbpCombo, BmbpCombos, BmbpDict, BmbpDictColumn, BmbpDisplay};
 
@@ -23,28 +27,12 @@ impl BmbpDictService {
     pub(crate) async fn find_dict_page(depot: &mut Depot, page_req: &BmbpPageReq<BmbpDict>) -> BmbpResp<Option<PageData<BmbpDict>>> {
         let query_wrapper = Self::build_dict_query_wrapper(depot, page_req.get_params()).await?;
         let orm = parse_orm(depot)?;
-        return match orm.select_page_by_query::<BmbpDict>(page_req.get_page_no().clone(), page_req.get_page_size().clone(), &query_wrapper).await {
-            Ok(mut orm_page) => {
-                let orm_page_data = orm_page.data_take();
-                let resp_page = PageData::new(orm_page.page_num().clone() as u32, orm_page.page_size().clone() as u32, orm_page.total().clone() as u32, orm_page_data.unwrap_or(vec![]));
-                Ok(Some(resp_page))
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        };
+        BmbpCurdDao::execute_query_page::<BmbpDict>(orm, Some(page_req.get_page_no().clone()), Some(page_req.get_page_size().clone()), &query_wrapper).await
     }
     pub(crate) async fn find_dict_list(depot: &mut Depot, params: &BmbpDict) -> BmbpResp<Option<Vec<BmbpDict>>> {
         let query_wrapper = Self::build_dict_query_wrapper(depot, Some(params)).await?;
         let orm = parse_orm(depot)?;
-        match orm.select_list_by_query::<BmbpDict>(&query_wrapper).await {
-            Ok(dict) => {
-                Ok(dict)
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        }
+        BmbpCurdDao::execute_query_list::<BmbpDict>(orm, &query_wrapper).await
     }
     pub(crate) async fn find_dict_tree_ignore(depot: &mut Depot, params: &BmbpDict) -> BmbpResp<Option<Vec<BmbpDict>>> {
         let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
@@ -62,33 +50,18 @@ impl BmbpDictService {
             query_wrapper.not_like_left(BmbpDictColumn::DictCodePath, dict_parent_code.clone());
         }
         let orm = parse_orm(depot)?;
-        match orm.select_list_by_query::<BmbpDict>(&query_wrapper).await {
-            Ok(dic) => {
-                if let Some(dic) = dic {
-                    Ok(Some(BmbpTreeUtil::build_tree::<BmbpDict>(dic)))
-                } else {
-                    Ok(None)
-                }
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
+        let dict_vec = BmbpCurdDao::execute_query_list::<BmbpDict>(orm, &query_wrapper).await?;
+        if dict_vec.is_some() {
+            Ok(Some(BmbpTreeUtil::build_tree::<BmbpDict>(dict_vec.unwrap())))
+        } else {
+            Ok(None)
         }
     }
 
 
     pub(crate) async fn find_dict_info(depot: &mut Depot, params: Option<&String>) -> BmbpResp<Option<BmbpDict>> {
-        let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
-        query_wrapper.eq_(BmbpDictColumn::DataId, params);
         let orm = parse_orm(depot)?;
-        match orm.select_one_by_query::<BmbpDict>(&query_wrapper).await {
-            Ok(dict) => {
-                Ok(dict)
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        }
+        BmbpCurdService::find_info_by_id::<BmbpDict>(orm, params).await
     }
     pub(crate) async fn find_dict_info_by_alias(depot: &mut Depot, alias: Option<&String>) -> BmbpResp<Option<BmbpDict>> {
         if alias.is_none() || alias.as_ref().unwrap().is_empty() {
@@ -97,14 +70,7 @@ impl BmbpDictService {
         let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
         query_wrapper.eq_(BmbpDictColumn::DictAlias, alias.unwrap().clone());
         let orm = parse_orm(depot)?;
-        match orm.select_one_by_query::<BmbpDict>(&query_wrapper).await {
-            Ok(dict) => {
-                Ok(dict)
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        }
+        BmbpCurdDao::execute_query_one::<BmbpDict>(orm, &query_wrapper).await
     }
     pub(crate) async fn find_dict_info_by_code(depot: &mut Depot, code: Option<&String>) -> BmbpResp<Option<BmbpDict>> {
         if code.is_none() || code.as_ref().unwrap().is_empty() {
@@ -113,14 +79,7 @@ impl BmbpDictService {
         let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
         query_wrapper.eq_(BmbpDictColumn::DictCode, code.unwrap().clone());
         let orm = parse_orm(depot)?;
-        match orm.select_one_by_query::<BmbpDict>(&query_wrapper).await {
-            Ok(dict) => {
-                Ok(dict)
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        }
+        BmbpCurdDao::execute_query_one::<BmbpDict>(orm, &query_wrapper).await
     }
     pub(crate) async fn find_dict_info_in_alias(depot: &mut Depot, alias: &[String]) -> BmbpResp<Option<Vec<BmbpDict>>> {
         if alias.is_empty() {
@@ -129,14 +88,7 @@ impl BmbpDictService {
         let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
         query_wrapper.in_v_slice(BmbpDictColumn::DictAlias, alias);
         let orm = parse_orm(depot)?;
-        match orm.select_list_by_query::<BmbpDict>(&query_wrapper).await {
-            Ok(dic) => {
-                Ok(dic)
-            }
-            Err(err) => {
-                return Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())));
-            }
-        }
+        BmbpCurdDao::execute_query_list::<BmbpDict>(orm, &query_wrapper).await
     }
 
     pub(crate) async fn save_dict(depot: &mut Depot, params: &mut BmbpDict) -> BmbpResp<Option<BmbpDict>> {
@@ -222,15 +174,8 @@ impl BmbpDictService {
         insert_wrapper.insert_column_value(BmbpDictColumn::DataOwnerOrg.get_ident(), "");
         insert_wrapper.insert_column_value(BmbpDictColumn::DataSign.get_ident(), "");
 
-
-        return match orm.unwrap().execute_insert(&insert_wrapper).await {
-            Ok(_) => {
-                Self::find_dict_info(depot, params.get_data_id().as_ref()).await
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        };
+        BmbpCurdDao::execute_insert::<BmbpDict>(orm.unwrap(), &insert_wrapper).await?;
+        Self::find_dict_info(depot, params.get_data_id().as_ref()).await
     }
 
 
@@ -307,87 +252,51 @@ impl BmbpDictService {
         update_wrapper.set(BmbpDictColumn::DataUpdateUser, "");
         update_wrapper.eq_(BmbpDictColumn::DataId, params.get_data_id().as_ref().unwrap());
 
-        return match orm.execute_update(&update_wrapper).await {
-            Ok(_) => {
-                if &old_dict_name != params.get_dict_name().as_ref().unwrap() || &old_dict_parent_code != params.get_dict_parent_code().as_ref().unwrap() {
-                    Self::update_children_dict_path(orm, &old_dict_code_path, &dict_code_path, &old_dict_name_path, &dict_name_path).await?;
-                }
-                Self::find_dict_info(depot, params.get_data_id().as_ref()).await
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        };
+        BmbpCurdDao::execute_update::<BmbpDict>(orm, &update_wrapper).await?;
+        if &old_dict_name != params.get_dict_name().as_ref().unwrap() || &old_dict_parent_code != params.get_dict_parent_code().as_ref().unwrap() {
+            Self::update_children_dict_path(orm, &old_dict_code_path, &dict_code_path, &old_dict_name_path, &dict_name_path).await?;
+        }
+        Self::find_dict_info(depot, params.get_data_id().as_ref()).await
     }
 
     pub(crate) async fn enable_dict(depot: &mut Depot, params: Option<&String>) -> BmbpResp<Option<u64>> {
-        let dict_info = Self::find_dict_info(depot, params).await?;
-        if dict_info.is_none() {
-            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("未找到字典信息".to_string())));
-        }
-        let mut update_wrapper = UpdateWrapper::new();
-        update_wrapper.set(BmbpDictColumn::DataStatus, "1");
-        update_wrapper.table(BmbpDict::get_table().get_ident());
-        update_wrapper.eq_(BmbpDictColumn::DataId, params.unwrap().clone());
-        Self::execute_update(depot, &update_wrapper).await
+        let orm = parse_orm(depot)?;
+        BmbpCurdService::enable::<BmbpDict>(orm, params).await
     }
 
     pub(crate) async fn batch_enable_dict(depot: &mut Depot, params: &BatchReqVo) -> BmbpResp<Option<u64>> {
-        let mut update_wrapper = UpdateWrapper::new();
-        update_wrapper.set(BmbpDictColumn::DataStatus, "1");
-        update_wrapper.table(BmbpDict::get_table().get_ident());
-        update_wrapper.in_v(BmbpDictColumn::DataId, params.get_ids().clone().unwrap_or(vec![]));
-        Self::execute_update(depot, &update_wrapper).await
+        let orm = parse_orm(depot)?;
+        let data_ids = params.get_ids().clone().unwrap_or(vec![]);
+        BmbpCurdService::batch_enable::<BmbpDict>(orm, data_ids.as_slice()).await
     }
 
     pub(crate) async fn disable_dict(depot: &mut Depot, params: Option<&String>) -> BmbpResp<Option<u64>> {
-        let dict_info = Self::find_dict_info(depot, params).await?;
-        if dict_info.is_none() {
-            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("未找到字典信息".to_string())));
-        }
-        let mut update_wrapper = UpdateWrapper::new();
-        update_wrapper.set(BmbpDictColumn::DataStatus, "0");
-        update_wrapper.table(BmbpDict::get_table().get_ident());
-        update_wrapper.eq_(BmbpDictColumn::DataId, params.unwrap().clone());
-        Self::execute_update(depot, &update_wrapper).await
+        let orm = parse_orm(depot)?;
+        BmbpCurdService::disable::<BmbpDict>(orm, params).await
     }
 
     pub(crate) async fn batch_disable_dict(depot: &mut Depot, params: &BatchReqVo) -> BmbpResp<Option<u64>> {
-        let mut update_wrapper = UpdateWrapper::new();
-        update_wrapper.set(BmbpDictColumn::DataStatus, "0");
-        update_wrapper.table(BmbpDict::get_table().get_ident());
-        update_wrapper.in_v(BmbpDictColumn::DataId, params.get_ids().clone().unwrap_or(vec![]));
-        Self::execute_update(depot, &update_wrapper).await
+        let orm = parse_orm(depot)?;
+        let data_ids = params.get_ids().clone().unwrap_or(vec![]);
+        BmbpCurdService::batch_disable::<BmbpDict>(orm, data_ids.as_slice()).await
     }
 
     pub(crate) async fn remove_dict(depot: &mut Depot, params: Option<&String>) -> BmbpResp<Option<u64>> {
-        let dict_info = Self::find_dict_info(depot, params).await?;
-        if dict_info.is_none() {
-            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("未找到字典信息".to_string())));
-        }
-        let mut wrapper = DeleteWrapper::new();
-        wrapper.table(BmbpDict::get_table().get_ident());
-        wrapper.eq_(BmbpDictColumn::DataId, params.clone());
-        Self::execute_delete(depot, &wrapper).await
+        let orm = parse_orm(depot)?;
+        BmbpCurdService::remove::<BmbpDict>(orm, params).await
     }
 
     pub(crate) async fn batch_remove_dict(depot: &mut Depot, params: &BatchReqVo) -> BmbpResp<Option<u64>> {
-        let mut wrapper = DeleteWrapper::new();
-        wrapper.table(BmbpDict::get_table().get_ident());
-        wrapper.in_v(BmbpDictColumn::DataId, params.get_ids().clone().unwrap_or(vec![]));
-        Self::execute_delete(depot, &wrapper).await
+        let orm = parse_orm(depot)?;
+        let data_ids = params.get_ids().clone().unwrap_or(vec![]);
+        BmbpCurdService::batch_remove::<BmbpDict>(orm, data_ids.as_slice()).await
     }
 
     pub(crate) async fn update_order(depot: &mut Depot, params: &BmbpDict) -> BmbpResp<Option<u64>> {
-        let dict_info = Self::find_dict_info(depot, params.get_data_id().as_ref()).await?;
-        if dict_info.is_none() {
-            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("未找到字典信息".to_string())));
-        }
-        let mut update_wrapper = UpdateWrapper::new();
-        update_wrapper.set(BmbpDictColumn::DataSort, params.get_data_sort().clone().unwrap_or(0i32));
-        update_wrapper.table(BmbpDict::get_table().get_ident());
-        update_wrapper.eq_(BmbpDictColumn::DataId, params.get_data_id().as_ref().unwrap());
-        Self::execute_update(depot, &update_wrapper).await
+        let orm = parse_orm(depot)?;
+        let data_id = params.get_data_id().as_ref();
+        let order = params.get_data_sort().as_ref();
+        BmbpCurdService::update_order::<BmbpDict>(orm, data_id, order).await
     }
 
     pub(crate) async fn update_parent(depot: &mut Depot, params: &mut BmbpDict) -> BmbpResp<Option<u64>> {
@@ -402,43 +311,41 @@ impl BmbpDictService {
     }
 
     pub(crate) async fn find_dict_combo(depot: &mut Depot, alias: Option<&String>, cascade: Option<&String>) -> BmbpResp<Option<Vec<BmbpCombo>>> {
-        if alias.is_none() || alias.as_ref().unwrap().is_empty() {
-            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("字典编码不能为空".to_string())));
+        let mut batch_req = BatchComboVo::new();
+        if let Some(a) = alias {
+            batch_req.set_codes(Some(vec![a.clone()]));
         }
-        let code = vec![alias.unwrap().clone()];
-        let dict_vec = Self::find_dict_children_by_alias(depot, code.as_slice(), cascade).await?;
-        Self::convert_dict_to_combo(dict_vec)
+        if let Some(ca) = cascade {
+            batch_req.set_cascade(Some(ca.clone()));
+        }
+        let dict_combo = Self::find_dict_combos(depot, &batch_req).await?;
+        match dict_combo {
+            Some(v) => Ok(Some(v.get(&alias.unwrap().clone()).unwrap_or(&vec![]).clone())),
+            None => Ok(None),
+        }
     }
 
     pub(crate) async fn find_dict_combos(depot: &mut Depot, params: &BatchComboVo) -> BmbpResp<Option<BmbpCombos>> {
         let code = params.get_codes().as_ref().unwrap_or(&vec![]).clone();
         let cascade = params.get_cascade().as_ref().clone();
         let dict_vec = Self::find_dict_children_by_alias(depot, code.as_slice(), cascade).await?;
-
-        let dict_vec = dict_vec.unwrap_or(vec![]);
-        let dict_vec = BmbpTreeUtil::build_tree::<BmbpDict>(dict_vec);
-        Self::convert_dict_to_combos(code.as_slice(), dict_vec)
+        Self::convert_dict_to_combos(dict_vec)
     }
 
     pub(crate) async fn find_dict_display(depot: &mut Depot, alias: Option<&String>, cascade: Option<&String>) -> BmbpResp<Option<BmbpDisplay>> {
-        if alias.is_none() || alias.as_ref().unwrap().is_empty() {
-            return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("字典编码不能为空".to_string())));
+        let dict_vec = Self::find_dict_combo(depot, alias, cascade).await?;
+        let mut display = BmbpDisplay::new();
+        if let Some(v) = dict_vec {
+            for item in v.as_slice() {
+                display.insert(item.get_value().as_ref().unwrap_or(&"".to_string()).to_string(), item.get_label().as_ref().unwrap_or(&"".to_string()).to_string())
+            }
         }
-        let code = vec![alias.unwrap().clone()];
-        let dict_vec = Self::find_dict_children_by_alias(depot, code.as_slice(), cascade).await?;
-        Self::convert_dict_to_display(dict_vec)
+        Ok(Some(display))
     }
 
     pub(crate) async fn find_dict_displays(depot: &mut Depot, params: &BatchComboVo) -> BmbpResp<Option<BmbpDisplay>> {
-        let code = params.get_codes().as_ref().unwrap_or(&vec![]).clone();
-        let cascade = params.get_cascade().as_ref().clone();
-        let mut dict_vec = Self::find_dict_children_by_alias(depot, code.as_slice(), cascade).await?;
-
-        let dict_vec = Self::find_dict_children_by_alias(depot, code.as_slice(), cascade).await?;
-
-        let mut dict_vec = dict_vec.unwrap_or(vec![]);
-        dict_vec = BmbpTreeUtil::build_tree::<BmbpDict>(dict_vec);
-        Self::convert_dict_to_displays(code.as_slice(), dict_vec)
+        let dict_vec = Self::find_dict_combos(depot, &params).await?;
+        Self::convert_combos_display(dict_vec)
     }
 
     async fn build_dict_query_wrapper(depot: &mut Depot, params_op: Option<&BmbpDict>) -> BmbpResp<QueryWrapper> {
@@ -460,29 +367,7 @@ impl BmbpDictService {
         }
         Ok(query_wrapper)
     }
-    async fn execute_update(depot: &mut Depot, update_wrapper: &UpdateWrapper) -> BmbpResp<Option<u64>> {
-        let orm = parse_orm(depot)?;
-        return match orm.execute_update(&update_wrapper).await {
-            Ok(row_count) => {
-                Ok(Some(row_count))
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        };
-    }
-    async fn execute_delete(depot: &mut Depot, delete_wrapper: &DeleteWrapper) -> BmbpResp<Option<u64>> {
-        let orm = parse_orm(depot)?;
-        return match orm.execute_delete(&delete_wrapper).await {
-            Ok(row_count) => {
-                Ok(Some(row_count))
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        };
-    }
-    async fn find_dict_children_by_alias(depot: &mut Depot, alias: &[String], cascade: Option<&String>) -> BmbpResp<Option<Vec<BmbpDict>>> {
+    async fn find_dict_children_by_alias(depot: &mut Depot, alias: &[String], cascade: Option<&String>) -> BmbpResp<Vec<BmbpDict>> {
         let dict_vec_op = Self::find_dict_info_in_alias(depot, alias).await?;
         if dict_vec_op.is_none() || dict_vec_op.as_ref().unwrap().is_empty() {
             return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("未找到字典信息".to_string())));
@@ -492,56 +377,22 @@ impl BmbpDictService {
             dict_code_vec.push(item.get_dict_code().as_ref().unwrap().clone());
         }
         let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
-        if cascade.is_some() && (cascade.as_ref().unwrap().as_str().eq("1") || cascade.as_ref().unwrap().as_str().eq("true")) {
-            query_wrapper.or();
-            for code in dict_code_vec.as_slice() {
-                query_wrapper.like(BmbpDictColumn::DictCodePath, code.clone());
-            }
-        } else {
-            query_wrapper.in_v_slice(BmbpDictColumn::DictParentCode, dict_code_vec.as_slice());
+        let mut filter = RdbcTableFilterImpl::concat(RdbcConcatType::Or);
+        for code in dict_code_vec.as_slice() {
+            filter.like_value(BmbpDictColumn::DictCodePath, code.clone());
+        }
+        query_wrapper.add_filter(filter);
+        if cascade.is_none() || (!cascade.as_ref().unwrap().as_str().eq("1") && !cascade.as_ref().unwrap().as_str().eq("true")) {
+            let mut filter2 = RdbcTableFilterImpl::concat(RdbcConcatType::Or);
+            filter2.in_v_slice(BmbpDictColumn::DictCode.get_ident(), dict_code_vec.as_slice());
+            filter2.in_v_slice(BmbpDictColumn::DictParentCode, dict_code_vec.as_slice());
+            query_wrapper.add_filter(filter2);
         }
         let orm = parse_orm(depot)?;
-        match orm.select_list_by_query::<BmbpDict>(&query_wrapper).await {
-            Ok(dict_vec) => {
-                Ok(dict_vec)
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
-        }
+        let dict_vec = BmbpCurdDao::execute_query_list::<BmbpDict>(orm, &query_wrapper).await?;
+        Ok(BmbpTreeUtil::build_tree::<BmbpDict>(dict_vec.unwrap_or(vec![])))
     }
-    fn convert_dict_to_combo(dict_vec: Option<Vec<BmbpDict>>) -> BmbpResp<Option<Vec<BmbpCombo>>> {
-        match dict_vec {
-            Some(v) => {
-                let mut combo_vec = vec![];
-                for dict in v {
-                    let mut combo = BmbpCombo::new();
-                    combo.set_value(dict.get_dict_value().clone());
-                    combo.set_label(dict.get_dict_name().clone());
-                    combo_vec.push(combo);
-                }
-                Ok(Some(combo_vec))
-            }
-            None => {
-                Ok(None)
-            }
-        }
-    }
-    fn convert_dict_to_display(dict_vec: Option<Vec<BmbpDict>>) -> BmbpResp<Option<BmbpDisplay>> {
-        match dict_vec {
-            Some(v) => {
-                let mut display = BmbpDisplay::new();
-                for dict in v {
-                    display.insert(dict.get_dict_value().as_ref().unwrap().clone(), dict.get_dict_name().as_ref().unwrap().clone());
-                }
-                Ok(Some(display))
-            }
-            None => {
-                Ok(None)
-            }
-        }
-    }
-    fn convert_dict_to_combos(codes: &[String], dict_vec: Vec<BmbpDict>) -> BmbpResp<Option<BmbpCombos>> {
+    fn convert_dict_to_combos(dict_vec: Vec<BmbpDict>) -> BmbpResp<Option<BmbpCombos>> {
         let mut combos = BmbpCombos::new();
         for dict in dict_vec.as_slice() {
             let code = dict.get_dict_alias().as_ref().unwrap();
@@ -550,10 +401,18 @@ impl BmbpDictService {
         }
         Ok(Some(combos))
     }
-    fn convert_dict_to_displays(code: &[String], dict_vec: Vec<BmbpDict>) -> BmbpResp<Option<BmbpDisplay>> {
-        let display = BmbpDisplay::new();
-        // TODO
-        Ok(Some(display))
+    fn convert_combos_display(dict_vec: Option<BmbpCombos>) -> BmbpResp<Option<BmbpDisplay>> {
+        let mut displays = BmbpDisplay::new();
+        if dict_vec.is_none() {
+            return Ok(Some(displays));
+        }
+
+        for (k, v) in dict_vec.as_ref().unwrap() {
+            let child_display = Self::convert_child_combo_to_display(k, v);
+            displays.extend(child_display);
+        }
+
+        Ok(Some(displays))
     }
     async fn check_save_alias(orm: &RdbcOrm, dict_alias: &String, data_id: Option<String>) -> BmbpResp<()> {
         let mut query = QueryWrapper::new_from::<BmbpDict>();
@@ -608,22 +467,27 @@ impl BmbpDictService {
             }
         };
     }
-    async fn update_children_dict_path(orm: &RdbcOrm, old_code_path: &String, new_code_path: &String, old_name_path: &String, new_name_path: &String) -> BmbpResp<u64> {
+    async fn update_children_dict_path(orm: &RdbcOrm, old_code_path: &String, new_code_path: &String, old_name_path: &String, new_name_path: &String) -> BmbpResp<Option<u64>> {
         let mut update = UpdateWrapper::new();
         update.table(BmbpDict::get_table().get_ident())
             .set(BmbpDictColumn::DictNamePath, RdbcColumn::replace(BmbpDictColumn::DictNamePath.get_ident(), old_name_path, new_name_path))
             .set(BmbpDictColumn::DictCodePath, RdbcColumn::replace(BmbpDictColumn::DictCodePath.get_ident(), old_code_path, new_code_path));
         update.like_left_value(BmbpDictColumn::DictCodePath, old_code_path);
-        match orm.execute_update(&update).await {
-            Ok(num) => {
-                Ok(num)
-            }
-            Err(err) => {
-                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
-            }
+        BmbpCurdDao::execute_update::<BmbpDict>(orm, &update).await
+    }
+    fn convert_child_combo_to_display(code: &String, dict_vec: &Vec<BmbpCombo>) -> BmbpDisplay {
+        let mut displays = BmbpDisplay::new();
+        for item in dict_vec {
+            let key = format!("{}.{}", code, item.get_value().as_ref().unwrap_or(&"".to_string()));
+            displays.insert(key.clone(), item.get_label().as_ref().unwrap_or(&"-".to_string()).to_string());
+            let children = item.get_children();
+            let child_display = Self::convert_child_combo_to_display(&key, children);
+            displays.extend(child_display);
         }
+        displays
     }
 }
+
 
 fn convert_to_vec(dict_vec: &[BmbpDict]) -> Vec<BmbpCombo> {
     let mut bmbp_combo = vec![];
@@ -641,3 +505,13 @@ fn convert_to_vec(dict_vec: &[BmbpDict]) -> Vec<BmbpCombo> {
     bmbp_combo
 }
 
+fn convert_combo_to_display(combo_vec: &[BmbpCombo]) -> BmbpDisplay {
+    let mut dict_display = BmbpDisplay::new();
+    for combo in combo_vec {
+        dict_display.insert(combo.get_value().clone().unwrap_or("".to_string()), Value::String(combo.get_label().clone().unwrap_or("".to_string())));
+        if combo.get_children().is_some() && !combo.get_children().as_ref().unwrap().is_empty() {
+            dict_display.insert("children", Value::Object(convert_combo_to_display(combo.get_children().as_ref().unwrap().as_slice())));
+        }
+    }
+    dict_display
+}

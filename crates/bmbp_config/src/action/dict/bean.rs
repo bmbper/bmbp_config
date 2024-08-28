@@ -28,8 +28,6 @@ pub struct BmbpCombo {
 
 pub(crate) type BmbpCombos = HashMap<String, Vec<BmbpCombo>>;
 pub(crate) type BmbpDisplay = HashMap<String, String>;
-pub(crate) type BmbpDisplays = HashMap<String, BmbpDisplay>;
-
 
 #[bean]
 pub struct BatchReqVo {

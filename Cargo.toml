@@ -13,7 +13,7 @@ repository = "https://github.com/bmbper/bmbp_config"
 documentation = "https://github.com/bmbper/bmbp_config"
 [workspace.dependencies]
 bmbp_config = { version = "0.0.0", path = "crates/bmbp_config" }
-
+bmbp_curd = { version = "0.0.0", path = "crates/bmbp_curd" }
 demmo_app = { version = "0.0.0", path = "crates/demo_app" }
 
 # 宏
