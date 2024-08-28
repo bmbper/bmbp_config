@@ -1,6 +1,6 @@
 use bmbp_app_util::{parse_orm, parse_user, parse_user_orm};
 use bmbp_http_type::{BmbpPageReq, BmbpResp, BmbpRespErr, PageData};
-use bmbp_rdbc_orm::{DeleteWrapper, InsertWrapper, QueryWrapper, RdbcOrm, RdbcTableFilter, RdbcTableWrapper, UpdateWrapper};
+use bmbp_rdbc_orm::{DeleteWrapper, InsertWrapper, QueryWrapper, RdbcColumn, RdbcOrm, RdbcTableFilter, RdbcTableWrapper, UpdateWrapper};
 use bmbp_rdbc_type::RdbcIdent;
 use bmbp_rdbc_type::RdbcTable;
 use bmbp_util::{BMBP_TREE_ROOT_NODE, BmbpId, BmbpTreeUtil, current_time};
@@ -241,11 +241,12 @@ impl BmbpDictService {
         let mut old_dict_name = "".to_string();
         let mut old_dict_parent_code = "".to_string();
         let mut old_dict_code_path = "".to_string();
+        let mut old_dict_name_path = "".to_string();
         if let Some(mut dict_info) = Self::find_dict_info(depot, params.get_data_id().as_ref()).await? {
             old_dict_parent_code = dict_info.get_dict_parent_code().clone().unwrap();
             old_dict_name = dict_info.get_dict_name().clone().unwrap();
             old_dict_code_path = dict_info.get_dict_code_path().clone().unwrap();
-
+            old_dict_name_path = dict_info.get_dict_name_path().clone().unwrap();
             if params.get_dict_code().is_none() {
                 params.set_dict_code(dict_info.get_dict_code().clone());
             }
@@ -261,10 +262,9 @@ impl BmbpDictService {
             if params.get_dict_value().is_none() {
                 params.set_dict_value(dict_info.get_dict_value().clone());
             }
-            if params.get_data_sort().is_none(){
+            if params.get_data_sort().is_none() {
                 params.set_data_sort(dict_info.get_data_sort().clone());
             }
-
         } else {
             return Err(BmbpRespErr::err(Some("REQUEST".to_string()), Some("未找到字典信息".to_string())));
         }
@@ -287,9 +287,9 @@ impl BmbpDictService {
 
         // 校验别名是否重复
         let orm = parse_orm(depot)?;
-        Self::check_save_alias(orm.unwrap(), params.get_dict_alias().clone().as_ref().unwrap(), params.get_data_id().clone()).await?;
-        Self::check_save_name(orm.unwrap(), params.get_dict_parent_code().clone().unwrap(), params.get_dict_name().clone().unwrap(), params.get_data_id().clone()).await?;
-        Self::check_save_value(orm.unwrap(), params.get_dict_parent_code().clone().unwrap(), params.get_dict_value().clone().unwrap(), params.get_data_id().clone()).await?;
+        Self::check_save_alias(orm, params.get_dict_alias().clone().as_ref().unwrap(), params.get_data_id().clone()).await?;
+        Self::check_save_name(orm, params.get_dict_parent_code().clone().unwrap(), params.get_dict_name().clone().unwrap(), params.get_data_id().clone()).await?;
+        Self::check_save_value(orm, params.get_dict_parent_code().clone().unwrap(), params.get_dict_value().clone().unwrap(), params.get_data_id().clone()).await?;
 
 
         let mut update_wrapper = UpdateWrapper::new();
@@ -299,8 +299,8 @@ impl BmbpDictService {
         update_wrapper.set(BmbpDictColumn::DictName, params.get_dict_name().as_ref().unwrap());
         update_wrapper.set(BmbpDictColumn::DictAlias, params.get_dict_alias().as_ref().unwrap());
         update_wrapper.set(BmbpDictColumn::DictValue, params.get_dict_value().as_ref().unwrap());
-        update_wrapper.set(BmbpDictColumn::DictCodePath, dict_code_path);
-        update_wrapper.set(BmbpDictColumn::DictNamePath, dict_name_path);
+        update_wrapper.set(BmbpDictColumn::DictCodePath, &dict_code_path);
+        update_wrapper.set(BmbpDictColumn::DictNamePath, &dict_name_path);
         update_wrapper.set(BmbpDictColumn::DictTreeGrade, params.get_dict_tree_grade().unwrap());
         update_wrapper.set(BmbpDictColumn::DataSort, params.get_data_sort().unwrap());
         update_wrapper.set(BmbpDictColumn::DataUpdateTime, current_time());
@@ -309,8 +309,8 @@ impl BmbpDictService {
 
         return match orm.execute_update(&update_wrapper).await {
             Ok(_) => {
-                if old_dict_name != params.get_dict_name().as_ref().unwrap() || old_dict_parent_code != params.get_dict_parent_code().as_ref().unwrap() {
-                    Self::update_children_dict_path(orm, old_dict_code_path).await?;
+                if &old_dict_name != params.get_dict_name().as_ref().unwrap() || &old_dict_parent_code != params.get_dict_parent_code().as_ref().unwrap() {
+                    Self::update_children_dict_path(orm, &old_dict_code_path, &dict_code_path, &old_dict_name_path, &dict_name_path).await?;
                 }
                 Self::find_dict_info(depot, params.get_data_id().as_ref()).await
             }
@@ -608,11 +608,20 @@ impl BmbpDictService {
             }
         };
     }
-    async fn update_children_dict_path(orm: &RdbcOrm, old_code_path: String) {
-        // let mut update_wrapper = UpdateWrapper::new();
-        // update_wrapper.set(BmbpDictColumn::DictCodePath, format!("{}", old_code_path.replace(",", "/")))
-        // update_wrapper.table(BmbpDict::get_table().get_ident());
-        // update_wrapper.like_left(BmbpDictColumn::DictCodePath, old_code_path);
+    async fn update_children_dict_path(orm: &RdbcOrm, old_code_path: &String, new_code_path: &String, old_name_path: &String, new_name_path: &String) -> BmbpResp<u64> {
+        let mut update = UpdateWrapper::new();
+        update.table(BmbpDict::get_table().get_ident())
+            .set(BmbpDictColumn::DictNamePath, RdbcColumn::replace(BmbpDictColumn::DictNamePath.get_ident(), old_name_path, new_name_path))
+            .set(BmbpDictColumn::DictCodePath, RdbcColumn::replace(BmbpDictColumn::DictCodePath.get_ident(), old_code_path, new_code_path));
+        update.like_left_value(BmbpDictColumn::DictCodePath, old_code_path);
+        match orm.execute_update(&update).await {
+            Ok(num) => {
+                Ok(num)
+            }
+            Err(err) => {
+                Err(BmbpRespErr::err(Some("DB".to_string()), Some(err.get_msg())))
+            }
+        }
     }
 }
 
