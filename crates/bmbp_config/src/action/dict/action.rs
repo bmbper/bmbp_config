@@ -9,7 +9,7 @@ use crate::action::dict::service::BmbpDictService;
 #[handler]
 pub async fn find_dict_tree(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<Vec<BmbpDict>>> {
     let params = req.parse_json::<BmbpDict>().await?;
@@ -20,7 +20,7 @@ pub async fn find_dict_tree(
 #[handler]
 pub async fn find_dict_page(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<PageData<BmbpDict>>> {
     let params = req.parse_json::<BmbpPageReq<BmbpDict>>().await?;
@@ -31,7 +31,7 @@ pub async fn find_dict_page(
 #[handler]
 pub async fn find_dict_list(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<Vec<BmbpDict>>> {
     let params = req.parse_json::<BmbpDict>().await?;
@@ -42,7 +42,7 @@ pub async fn find_dict_list(
 #[handler]
 pub async fn find_dict_tree_ignore(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<Vec<BmbpDict>>> {
     let params = req.parse_json::<BmbpDict>().await?;
@@ -53,7 +53,7 @@ pub async fn find_dict_tree_ignore(
 #[handler]
 pub async fn find_dict_info(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<BmbpDict>> {
     let dict_id = req.query::<String>("dataId");
@@ -64,7 +64,7 @@ pub async fn find_dict_info(
 #[handler]
 pub async fn save_dict(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<BmbpDict>> {
     let mut params = req.parse_json::<BmbpDict>().await?;
@@ -75,7 +75,7 @@ pub async fn save_dict(
 #[handler]
 pub async fn insert_dict(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<BmbpDict>> {
     let mut params = req.parse_json::<BmbpDict>().await?;
@@ -86,7 +86,7 @@ pub async fn insert_dict(
 #[handler]
 pub async fn update_dict(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<BmbpDict>> {
     let mut params = req.parse_json::<BmbpDict>().await?;
@@ -97,7 +97,7 @@ pub async fn update_dict(
 #[handler]
 pub async fn enable_dict(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<u64>> {
     let dict_id = req.query::<String>("dataId");
@@ -108,7 +108,7 @@ pub async fn enable_dict(
 #[handler]
 pub async fn disable_dict(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<u64>> {
     let dict_id = req.query::<String>("dataId");
@@ -119,7 +119,7 @@ pub async fn disable_dict(
 #[handler]
 pub async fn batch_enable_dict(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<u64>> {
     let dict_req = req.parse_json::<BatchReqVo>().await?;
@@ -131,7 +131,7 @@ pub async fn batch_enable_dict(
 #[handler]
 pub async fn batch_disable_dict(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<u64>> {
     let dict_req = req.parse_json::<BatchReqVo>().await?;
@@ -143,7 +143,7 @@ pub async fn batch_disable_dict(
 #[handler]
 pub async fn remove_dict(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<u64>> {
     let dict_id = req.query::<String>("dataId");
@@ -154,7 +154,7 @@ pub async fn remove_dict(
 #[handler]
 pub async fn batch_remove_dict(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<u64>> {
     let dict_req = req.parse_json::<BatchReqVo>().await?;
@@ -165,7 +165,7 @@ pub async fn batch_remove_dict(
 #[handler]
 pub async fn update_order(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<u64>> {
     let params = req.parse_json::<BmbpDict>().await?;
@@ -176,7 +176,7 @@ pub async fn update_order(
 #[handler]
 pub async fn update_parent(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<u64>> {
     let mut params = req.parse_json::<BmbpDict>().await?;
@@ -187,7 +187,7 @@ pub async fn update_parent(
 #[handler]
 pub async fn find_dict_combo(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<Vec<BmbpCombo>>> {
     let code = req.query::<String>("code");
@@ -199,7 +199,7 @@ pub async fn find_dict_combo(
 #[handler]
 pub async fn find_dict_combos(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<BmbpCombos>> {
     let combo_vo = req.parse_json::<BatchComboVo>().await?;
@@ -210,7 +210,7 @@ pub async fn find_dict_combos(
 #[handler]
 pub async fn find_dict_display(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<BmbpDisplay>> {
     let code = req.query::<String>("code");
@@ -222,7 +222,7 @@ pub async fn find_dict_display(
 #[handler]
 pub async fn find_dict_displays(
     req: &mut Request,
-    resp: &mut Response,
+    _resp: &mut Response,
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<BmbpDisplay>> {
     let code = req.parse_json::<BatchComboVo>().await?;

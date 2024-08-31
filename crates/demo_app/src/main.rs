@@ -34,6 +34,7 @@ pub async fn build_orm() -> RdbcOrm {
         }
     }
 }
+
 pub async fn init_orm() {
     let rs = RdbcOrmIns.await;
     register_app_orm(rs);
@@ -48,12 +49,11 @@ async fn main() {
     let host = "0.0.0.0:9002";
     tracing::info!("启动初始化服务,监听地址:{}......", host);
     let acceptor = TcpListener::new(host).bind().await;
-    let mut router = Router::new().hoop(auth_token_middle).hoop(auth_user_middle).hoop(orm_middle);
-    router = router.push(build_bmbp_ui_lib_router());
-    router = router.push(build_bmbp_config_router());
+    let router = Router::new().push(build_bmbp_ui_lib_router())
+        .hoop(auth_token_middle).hoop(auth_user_middle).hoop(orm_middle).push(build_bmbp_config_router());
     Server::new(acceptor).serve(router).await;
 }
 
 fn init_white_urls() {
-    (&*BMBP_CONTEXT_VARS).set_value(BMBP_WHITE_URLS.to_string(),"/<**>");
+    (&*BMBP_CONTEXT_VARS).set_value(BMBP_WHITE_URLS.to_string(), "/<**>");
 }

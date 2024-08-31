@@ -1,8 +1,8 @@
 // web/tsx/dict/action.tsx
 var PageState = {};
 var PageUrl = {
-  findTreeUrl: "/bmbp/config/action/dict/find_tree.action",
-  findPageUrl: "/bmbp/config/action/dict/find_page.action"
+  findTreeUrl: "./tree",
+  findPageUrl: "./page"
 };
 var PageAction = {
   init: (props) => {

@@ -18,6 +18,7 @@ bmbp_marco_bean = { workspace = true }
 bmbp_rdbc_type = { workspace = true }
 bmbp_http_type = { workspace = true }
 bmbp_rdbc_orm = { workspace = true }
+bmbp_rdbc_sql = { workspace = true }
 bmbp_auth = { workspace = true }
 bmbp_app_util = { workspace = true }
 bmbp_util = { workspace = true }

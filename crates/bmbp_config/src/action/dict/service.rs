@@ -1,13 +1,12 @@
-use std::path::Display;
 use bmbp_app_util::{parse_orm, parse_user_orm};
 use bmbp_http_type::{BmbpPageReq, BmbpResp, BmbpRespErr, PageData};
-use bmbp_rdbc_orm::{InsertWrapper, QueryWrapper, RdbcColumn, RdbcConcatType, RdbcOrm, RdbcTableFilter, RdbcTableFilterImpl, RdbcTableWrapper, UpdateWrapper};
+use bmbp_rdbc_orm::RdbcOrm;
+use bmbp_rdbc_sql::{InsertWrapper, QueryWrapper, RdbcColumn, RdbcConcatType, RdbcTableFilter, RdbcTableFilterImpl, RdbcTableWrapper, UpdateWrapper};
 use bmbp_rdbc_type::RdbcIdent;
 use bmbp_rdbc_type::RdbcTable;
 use bmbp_util::{BMBP_TREE_ROOT_NODE, BmbpId, BmbpTreeUtil, current_time};
-use salvo::__private::tracing::field::display;
 use salvo::Depot;
-use serde_json::Value;
+
 use bmbp_curd::{BmbpCurdDao, BmbpCurdService};
 
 use crate::action::dict::bean::{BatchComboVo, BatchReqVo, BmbpCombo, BmbpCombos, BmbpDict, BmbpDictColumn, BmbpDisplay};
@@ -337,7 +336,7 @@ impl BmbpDictService {
         let mut display = BmbpDisplay::new();
         if let Some(v) = dict_vec {
             for item in v.as_slice() {
-                display.insert(item.get_value().as_ref().unwrap_or(&"".to_string()).to_string(), item.get_label().as_ref().unwrap_or(&"".to_string()).to_string())
+                display.insert(item.get_value().as_ref().unwrap_or(&"".to_string()).to_string(), item.get_label().as_ref().unwrap_or(&"".to_string()).to_string());
             }
         }
         Ok(Some(display))
@@ -396,7 +395,7 @@ impl BmbpDictService {
         let mut combos = BmbpCombos::new();
         for dict in dict_vec.as_slice() {
             let code = dict.get_dict_alias().as_ref().unwrap();
-            let combo_vec = convert_to_vec(dict.get_dict_children().as_ref().unwrap().as_slice());
+            let combo_vec = Self::convert_to_vec(dict.get_dict_children().as_ref().unwrap().as_slice());
             combos.insert(code.to_string(), combo_vec);
         }
         Ok(Some(combos))
@@ -486,32 +485,22 @@ impl BmbpDictService {
         }
         displays
     }
-}
-
-
-fn convert_to_vec(dict_vec: &[BmbpDict]) -> Vec<BmbpCombo> {
-    let mut bmbp_combo = vec![];
-    for item in dict_vec {
-        let mut child_combo = vec![];
-        if item.get_dict_children().is_some() && !item.get_dict_children().as_ref().unwrap().is_empty() {
-            child_combo = convert_to_vec(item.get_dict_children().as_ref().unwrap().as_slice());
+    fn convert_to_vec(dict_vec: &[BmbpDict]) -> Vec<BmbpCombo> {
+        let mut bmbp_combo = vec![];
+        for item in dict_vec {
+            let mut child_combo = vec![];
+            if item.get_dict_children().is_some() && !item.get_dict_children().as_ref().unwrap().is_empty() {
+                child_combo = Self::convert_to_vec(item.get_dict_children().as_ref().unwrap().as_slice());
+            }
+            let mut combo = BmbpCombo::new();
+            combo.set_value(item.get_dict_value().clone());
+            combo.set_label(item.get_dict_name().clone());
+            combo.set_children(child_combo);
+            bmbp_combo.push(combo)
         }
-        let mut combo = BmbpCombo::new();
-        combo.set_value(item.get_dict_value().clone());
-        combo.set_label(item.get_dict_name().clone());
-        combo.set_children(child_combo);
-        bmbp_combo.push(combo)
+        bmbp_combo
     }
-    bmbp_combo
+
 }
 
-fn convert_combo_to_display(combo_vec: &[BmbpCombo]) -> BmbpDisplay {
-    let mut dict_display = BmbpDisplay::new();
-    for combo in combo_vec {
-        dict_display.insert(combo.get_value().clone().unwrap_or("".to_string()), Value::String(combo.get_label().clone().unwrap_or("".to_string())));
-        if combo.get_children().is_some() && !combo.get_children().as_ref().unwrap().is_empty() {
-            dict_display.insert("children", Value::Object(convert_combo_to_display(combo.get_children().as_ref().unwrap().as_slice())));
-        }
-    }
-    dict_display
-}
+

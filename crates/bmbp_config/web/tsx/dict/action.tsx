@@ -26,8 +26,8 @@ interface PageStateModel {
 export const PageState: PageStateModel = {};
 
 const PageUrl = {
-  findTreeUrl: "/bmbp/config/action/dict/find_tree.action",
-  findPageUrl: "/bmbp/config/action/dict/find_page.action",
+  findTreeUrl: "./tree",
+  findPageUrl: "./page",
 };
 // 全局方法
 export const PageAction = {
