@@ -5,7 +5,7 @@ import {
     ChangeDictShowOrderFormDialog,
     EditDictFormDialog,
     InfoDictFormDialog, ImportDictFormDialog,ExportDictFormDialog
-} from "./form/form";
+} from "./form/dialog";
 
 window.onload = () => {
     const root = ReactDOM.createRoot(document.getElementById("app"));

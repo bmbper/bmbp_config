@@ -128,6 +128,8 @@ export const PageAction = {
   },
   addBrotherNode: (node: any) => {
     console.log("addDict");
+    PageState.setAddFormDialogVisible(true);
+    console.log("addDict");
   },
   addChildNode: (node) => {
     PageState.setAddFormDialogVisible(true);

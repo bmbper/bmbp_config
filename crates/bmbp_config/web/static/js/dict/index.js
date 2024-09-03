@@ -83,6 +83,8 @@ var PageAction = {
   },
   addBrotherNode: (node) => {
     console.log("addDict");
+    PageState.setAddFormDialogVisible(true);
+    console.log("addDict");
   },
   addChildNode: (node) => {
     PageState.setAddFormDialogVisible(true);
@@ -112,6 +114,23 @@ var PageAction = {
 };
 
 // web/tsx/dict/form/form.tsx
+var DictAddForm = () => {
+  return /* @__PURE__ */ React.createElement(arco.Form, null, /* @__PURE__ */ React.createElement(arco.Form.Item, {
+    label: "\u5B57\u5178\u540D\u79F0",
+    name: "dictName",
+    rules: [{ required: true, message: "\u8BF7\u8F93\u5165\u5B57\u5178\u540D\u79F0" }]
+  }, /* @__PURE__ */ React.createElement(arco.Input, {
+    placeholder: "\u8BF7\u8F93\u5165\u5B57\u5178\u540D\u79F0"
+  })), /* @__PURE__ */ React.createElement(arco.Form.Item, {
+    label: "\u5B57\u5178\u7F16\u7801",
+    name: "dictCode",
+    rules: [{ required: true, message: "\u8BF7\u8F93\u5165\u5B57\u5178\u7F16\u7801" }]
+  }, /* @__PURE__ */ React.createElement(arco.Input, {
+    placeholder: "\u8BF7\u8F93\u5165\u5B57\u5178\u7F16\u7801"
+  })));
+};
+
+// web/tsx/dict/form/dialog.tsx
 var AddDictFormDialog = () => {
   const [addFormDialogVisible, setAddFormDialogVisible] = React.useState(false);
   PageState.addFormDialogVisible = addFormDialogVisible;
@@ -121,72 +140,72 @@ var AddDictFormDialog = () => {
     visible: addFormDialogVisible,
     onOk: () => setAddFormDialogVisible(false),
     onCancel: () => setAddFormDialogVisible(false)
-  }));
+  }, /* @__PURE__ */ React.createElement(DictAddForm, null)));
 };
 var EditDictFormDialog = () => {
-  const [addFormDialogVisible, setAddFormDialogVisible] = React.useState(false);
-  PageState.addFormDialogVisible = addFormDialogVisible;
-  PageState.setAddFormDialogVisible = setAddFormDialogVisible;
+  const [editFormDialogVisible, setEditFormDialogVisible] = React.useState(false);
+  PageState.editFormDialogVisible = editFormDialogVisible;
+  PageState.setEditFormDialogVisible = setEditFormDialogVisible;
   return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(arco.Modal, {
     title: "\u7F16\u8F91\u5B57\u5178",
-    visible: addFormDialogVisible,
-    onOk: () => setAddFormDialogVisible(false),
-    onCancel: () => setAddFormDialogVisible(false)
+    visible: editFormDialogVisible,
+    onOk: () => setEditFormDialogVisible(false),
+    onCancel: () => setEditFormDialogVisible(false)
   }));
 };
 var InfoDictFormDialog = () => {
-  const [addFormDialogVisible, setAddFormDialogVisible] = React.useState(false);
-  PageState.addFormDialogVisible = addFormDialogVisible;
-  PageState.setAddFormDialogVisible = setAddFormDialogVisible;
+  const [infoFormDialogVisible, setInfoFormDialogVisible] = React.useState(false);
+  PageState.infoFormDialogVisible = infoFormDialogVisible;
+  PageState.setInfoFormDialogVisible = setInfoFormDialogVisible;
   return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(arco.Modal, {
     title: "\u67E5\u770B\u5B57\u5178",
-    visible: addFormDialogVisible,
-    onOk: () => setAddFormDialogVisible(false),
-    onCancel: () => setAddFormDialogVisible(false)
+    visible: infoFormDialogVisible,
+    onOk: () => setInfoFormDialogVisible(false),
+    onCancel: () => setInfoFormDialogVisible(false)
   }));
 };
 var ChangeParentDictFormDialog = () => {
-  const [addFormDialogVisible, setAddFormDialogVisible] = React.useState(false);
-  PageState.addFormDialogVisible = addFormDialogVisible;
-  PageState.setAddFormDialogVisible = setAddFormDialogVisible;
+  const [changeParentFormDialogVisible, setChangeParentFormDialogVisible] = React.useState(false);
+  PageState.changeParentFormDialogVisible = changeParentFormDialogVisible;
+  PageState.setChangeParentFormDialogVisible = setChangeParentFormDialogVisible;
   return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(arco.Modal, {
     title: "\u67E5\u770B\u5B57\u5178",
-    visible: addFormDialogVisible,
-    onOk: () => setAddFormDialogVisible(false),
-    onCancel: () => setAddFormDialogVisible(false)
+    visible: changeParentFormDialogVisible,
+    onOk: () => setChangeParentFormDialogVisible(false),
+    onCancel: () => setChangeParentFormDialogVisible(false)
   }));
 };
 var ChangeDictShowOrderFormDialog = () => {
-  const [addFormDialogVisible, setAddFormDialogVisible] = React.useState(false);
-  PageState.addFormDialogVisible = addFormDialogVisible;
-  PageState.setAddFormDialogVisible = setAddFormDialogVisible;
+  const [changeShowOrderFormDialogVisible, setChangeShowOrderFormDialogVisible] = React.useState(false);
+  PageState.changeShowOrderFormDialogVisible = changeShowOrderFormDialogVisible;
+  PageState.setChangeShowOrderFormDialogVisible = setChangeShowOrderFormDialogVisible;
   return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(arco.Modal, {
     title: "\u8C03\u6574\u987A\u5E8F",
-    visible: addFormDialogVisible,
-    onOk: () => setAddFormDialogVisible(false),
-    onCancel: () => setAddFormDialogVisible(false)
+    visible: changeShowOrderFormDialogVisible,
+    onOk: () => setChangeShowOrderFormDialogVisible(false),
+    onCancel: () => setChangeShowOrderFormDialogVisible(false)
   }));
 };
 var ImportDictFormDialog = () => {
-  const [addFormDialogVisible, setAddFormDialogVisible] = React.useState(false);
-  PageState.addFormDialogVisible = addFormDialogVisible;
-  PageState.setAddFormDialogVisible = setAddFormDialogVisible;
+  const [importFormDialogVisible, setImportFormDialogVisible] = React.useState(false);
+  PageState.importFormDialogVisible = importFormDialogVisible;
+  PageState.setImportFormDialogVisible = setImportFormDialogVisible;
   return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(arco.Modal, {
     title: "\u67E5\u770B\u5B57\u5178",
-    visible: addFormDialogVisible,
-    onOk: () => setAddFormDialogVisible(false),
-    onCancel: () => setAddFormDialogVisible(false)
+    visible: importFormDialogVisible,
+    onOk: () => setImportFormDialogVisible(false),
+    onCancel: () => setImportFormDialogVisible(false)
   }));
 };
 var ExportDictFormDialog = () => {
-  const [addFormDialogVisible, setAddFormDialogVisible] = React.useState(false);
-  PageState.addFormDialogVisible = addFormDialogVisible;
-  PageState.setAddFormDialogVisible = setAddFormDialogVisible;
+  const [exportFormDialogVisible, setExportFormDialogVisible] = React.useState(false);
+  PageState.exportFormDialogVisible = exportFormDialogVisible;
+  PageState.setExportFormDialogVisible = setExportFormDialogVisible;
   return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(arco.Modal, {
     title: "\u67E5\u770B\u5B57\u5178",
-    visible: addFormDialogVisible,
-    onOk: () => setAddFormDialogVisible(false),
-    onCancel: () => setAddFormDialogVisible(false)
+    visible: exportFormDialogVisible,
+    onOk: () => setExportFormDialogVisible(false),
+    onCancel: () => setExportFormDialogVisible(false)
   }));
 };
 
