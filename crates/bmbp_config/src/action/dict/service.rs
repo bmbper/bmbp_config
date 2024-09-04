@@ -126,8 +126,8 @@ impl BmbpDictService {
             if parent_code_path.is_empty() || parent_name_path.is_empty() {
                 return Err(BmbpRespErr::err(Some("VALID".to_string()), Some("父级节点信息异常,请联系管理员".to_string())));
             }
-            params.set_dict_parent_code(Some(format!("{}{},", parent_code_path, dict_code)));
-            params.set_dict_code_path(Some(format!("{}{},", parent_name_path, dict_name)));
+            params.set_dict_code_path(Some(format!("{}{},", parent_code_path, dict_code)));
+            params.set_dict_name_path(Some(format!("{}{},", parent_name_path, dict_name)));
         } else {
             params.set_dict_code_path(Some(format!("{},{},", params.get_dict_parent_code().as_ref().unwrap(), dict_code)));
             params.set_dict_name_path(Some(format!("{},{},", params.get_dict_parent_code().as_ref().unwrap(), dict_name)));

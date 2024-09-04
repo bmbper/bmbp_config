@@ -125,6 +125,10 @@ var PageAction = {
     let dictParentCode = "#";
     if (node && node.dictCode) {
       dictParentCode = node.dictCode;
+    } else {
+      if (PageState.selectTreeNodeData && PageState.selectTreeNodeData.dictCode) {
+        dictParentCode = PageState.selectTreeNodeData.dictCode;
+      }
     }
     let currentData = {
       dictParentCode
