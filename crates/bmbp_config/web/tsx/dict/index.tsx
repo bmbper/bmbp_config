@@ -1,10 +1,12 @@
 import {PageAction, PageState} from "./action";
 import {
     AddDictFormDialog,
-    ChangeParentDictFormDialog,
     ChangeDictShowOrderFormDialog,
+    ChangeParentDictFormDialog,
     EditDictFormDialog,
-    InfoDictFormDialog, ImportDictFormDialog,ExportDictFormDialog
+    ExportDictFormDialog,
+    ImportDictFormDialog,
+    InfoDictFormDialog
 } from "./form/dialog";
 
 window.onload = () => {
@@ -259,40 +261,42 @@ const PageGridToolBar = () => {
     );
 };
 const PageGridTable = () => {
-    const enableAction = (record) => {
+    const enableAction = (record: any) => {
         return [
             <arco.Tooltip content="新增子级">
                 <arco.Button
                     type="primary"
-                    status="danger"
-                    icon={<arcoicon.IconDelete/>}
+                    icon={<arcoicon.IconPlus/>}
                     size="mini"
                     onClick={() => {
+                        PageAction.addChildNode(record);
                     }}
                 ></arco.Button>
             </arco.Tooltip>,
             <arco.Tooltip content="查看">
                 <arco.Button
                     type="secondary"
-                    icon={<arcoicon.IconView/>}
+                    icon={<arcoicon.IconEye/>}
                     size="mini"
                     onClick={() => {
+                        PageAction.viewInfo(record);
                     }}
                 ></arco.Button>
             </arco.Tooltip>,
             <arco.Tooltip content="停用">
                 <arco.Button
                     type="secondary"
-                    icon={<arcoicon.IconEdit/>}
+                    icon={<arcoicon.IconStop/>}
                     size="mini"
                     onClick={() => {
+                        PageAction.disableNode(record);
                     }}
                 ></arco.Button>
             </arco.Tooltip>,
             <arco.Tooltip content="变更上级">
                 <arco.Button
                     type="secondary"
-                    icon={<arcoicon.IconEdit/>}
+                    icon={<arcoicon.IconStrikethrough/>}
                     size="mini"
                     onClick={() => {
                     }}
@@ -300,11 +304,21 @@ const PageGridTable = () => {
             </arco.Tooltip>,
         ];
     };
-    const disableAction = (record) => {
+    const disableAction = (record: any) => {
         return [
-            <arco.Tooltip content="编辑">
+            <arco.Tooltip content="新增子级">
                 <arco.Button
                     type="primary"
+                    icon={<arcoicon.IconPlus/>}
+                    size="mini"
+                    onClick={() => {
+                        PageAction.addChildNode(record);
+                    }}
+                ></arco.Button>
+            </arco.Tooltip>,
+            <arco.Tooltip content="编辑">
+                <arco.Button
+                    type="secondary"
                     icon={<arcoicon.IconEdit/>}
                     size="mini"
                     onClick={() => {
@@ -314,29 +328,21 @@ const PageGridTable = () => {
             </arco.Tooltip>,
             <arco.Tooltip content="启用">
                 <arco.Button
-                    type="primary"
+                    type="secondary"
                     icon={<arcoicon.IconPlayArrow/>}
                     size="mini"
                     onClick={() => {
+                        PageAction.enableNode(record);
                     }}
                 ></arco.Button>
             </arco.Tooltip>,
             <arco.Tooltip content="变更上级">
                 <arco.Button
                     type="secondary"
-                    icon={<arcoicon.IconEdit/>}
+                    icon={<arcoicon.IconStrikethrough/>}
                     size="mini"
                     onClick={() => {
-                    }}
-                ></arco.Button>
-            </arco.Tooltip>,
-            <arco.Tooltip content="新增子级">
-                <arco.Button
-                    type="secondary"
-                    icon={<arcoicon.IconPlus/>}
-                    size="mini"
-                    onClick={() => {
-                        PageAction.addChildNode(record);
+                        PageAction.changeParentNode(record);
                     }}
                 ></arco.Button>
             </arco.Tooltip>,
@@ -345,7 +351,7 @@ const PageGridTable = () => {
                 title="删除确认"
                 content="数据删除后无法恢复，确定删除吗?"
                 onOk={() => {
-                    arco.Message.success("删除成功");
+                    PageAction.removeNode(record);
                 }}
                 onCancel={() => {
                 }}
@@ -356,9 +362,6 @@ const PageGridTable = () => {
                         status="danger"
                         icon={<arcoicon.IconDelete/>}
                         size="mini"
-                        onClick={() => {
-                            PageAction.editNode(record);
-                        }}
                     ></arco.Button>
                 </arco.Tooltip>
             </arco.Popconfirm>,
@@ -393,8 +396,8 @@ const PageGridTable = () => {
             dataIndex: "dataStatus",
             fixed: "right",
             width: 80,
-            render: (value) => {
-                if (value == 1) {
+            render: (value: any) => {
+                if (value === "1") {
                     return <arco.Tag color="green">已启用</arco.Tag>;
                 } else {
                     return <arco.Tag color="red">已停用</arco.Tag>;
@@ -406,13 +409,12 @@ const PageGridTable = () => {
             dataIndex: "action",
             width: 180,
             fixed: "right",
-            align: "center",
+            align: "left",
             render: (value, record, index) => {
+                debugger
                 return (
                     <arco.Space>
-                        {record.dataStatus == 1
-                            ? enableAction(record)
-                            : disableAction(record)}
+                        {record.dataStatus === "1" ? enableAction(record) : disableAction(record)}
                     </arco.Space>
                 );
             },
