@@ -1,15 +1,18 @@
-use std::fmt::Debug;
-
 use bmbp_app_util::{parse_orm, parse_user_orm};
 use bmbp_http_type::{BmbpPageReq, BmbpResp, BmbpRespErr, PageData};
-use bmbp_rdbc_orm::RdbcOrm;
-use bmbp_rdbc_sql::{
-    InsertWrapper, QueryWrapper, RdbcColumn, RdbcConcatType, RdbcTableFilter, RdbcTableFilterImpl,
-    RdbcTableWrapper, UpdateWrapper,
-};
-use bmbp_rdbc_type::RdbcIdent;
-use bmbp_rdbc_type::RdbcTable;
-use bmbp_util::{BMBP_TREE_ROOT_NODE, BmbpId, BmbpTreeUtil, current_time};
+
+use bmbp_rdbc::InsertWrapper;
+use bmbp_rdbc::QueryFilter;
+use bmbp_rdbc::QueryWrapper;
+use bmbp_rdbc::RdbcColumn;
+use bmbp_rdbc::RdbcConcatType;
+use bmbp_rdbc::RdbcIdent;
+use bmbp_rdbc::RdbcOrm;
+use bmbp_rdbc::RdbcTable;
+use bmbp_rdbc::RdbcTableFilter;
+use bmbp_rdbc::RdbcTableWrapper;
+use bmbp_rdbc::UpdateWrapper;
+use bmbp_util::{current_time, BmbpId, BmbpTreeUtil, BMBP_TREE_ROOT_NODE};
 use salvo::Depot;
 
 use bmbp_curd::{BmbpCurdDao, BmbpCurdService};
@@ -67,13 +70,13 @@ impl BmbpDictService {
                     Some("未找到字典信息".to_string()),
                 ));
             }
-            query_wrapper.not_like_left(BmbpDictColumn::DictCodePath, dict_id.clone());
+            query_wrapper.not_like_left_(BmbpDictColumn::DictCodePath, dict_id.clone());
         }
         if let Some(dict_code) = params.get_dict_code() {
-            query_wrapper.not_like_left(BmbpDictColumn::DictCodePath, dict_code.clone());
+            query_wrapper.not_like_left_(BmbpDictColumn::DictCodePath, dict_code.clone());
         }
         if let Some(dict_parent_code) = params.get_dict_parent_code() {
-            query_wrapper.not_like_left(BmbpDictColumn::DictCodePath, dict_parent_code.clone());
+            query_wrapper.not_like_left_(BmbpDictColumn::DictCodePath, dict_parent_code.clone());
         }
         let orm = parse_orm(depot)?;
         let dict_vec = BmbpCurdDao::execute_query_list::<BmbpDict>(orm, &query_wrapper).await?;
@@ -140,7 +143,7 @@ impl BmbpDictService {
         depot: &mut Depot,
         params: &mut BmbpDict,
     ) -> BmbpResp<Option<BmbpDict>> {
-        let mut dict_info = Self::find_dict_info(depot, params.get_data_id().as_ref()).await?;
+        let dict_info = Self::find_dict_info(depot, params.get_data_id().as_ref()).await?;
         if dict_info.is_none() {
             Self::insert_dict(depot, params).await
         } else {
@@ -253,7 +256,7 @@ impl BmbpDictService {
         .await?;
 
         let mut insert_wrapper = InsertWrapper::new();
-        insert_wrapper.table(BmbpDict::get_table().get_ident());
+        insert_wrapper.table(BmbpDict::get_table());
 
         insert_wrapper.insert_column_value(
             BmbpDictColumn::DictCode.get_ident(),
@@ -440,7 +443,7 @@ impl BmbpDictService {
         .await?;
 
         let mut update_wrapper = UpdateWrapper::new();
-        update_wrapper.table(BmbpDict::get_table().get_ident());
+        update_wrapper.table(BmbpDict::get_table());
         update_wrapper.set(
             BmbpDictColumn::DictCode,
             params.get_dict_code().as_ref().unwrap(),
@@ -557,8 +560,8 @@ impl BmbpDictService {
             .clone();
         let mut update_wrapper = UpdateWrapper::new();
         update_wrapper.set("data_status", "0");
-        update_wrapper.table(BmbpDict::get_table().get_ident());
-        update_wrapper.like_left_value(BmbpDictColumn::DictCodePath, code_path);
+        update_wrapper.table(BmbpDict::get_table());
+        update_wrapper.like_left_(BmbpDictColumn::DictCodePath, code_path);
         BmbpCurdDao::execute_update::<BmbpDict>(orm, &update_wrapper).await
     }
 
@@ -704,13 +707,13 @@ impl BmbpDictService {
                         Some("未找到字典信息".to_string()),
                     ));
                 }
-                query_wrapper.like_left(BmbpDictColumn::DictCodePath, dict_id.clone());
+                query_wrapper.like_left_(BmbpDictColumn::DictCodePath, dict_id.clone());
             }
             if let Some(dict_code) = params.get_dict_code() {
-                query_wrapper.like_left(BmbpDictColumn::DictCodePath, dict_code.clone());
+                query_wrapper.like_left_(BmbpDictColumn::DictCodePath, dict_code.clone());
             }
             if let Some(dict_parent_code) = params.get_dict_parent_code() {
-                query_wrapper.like_left(BmbpDictColumn::DictCodePath, dict_parent_code.clone());
+                query_wrapper.like_left_(BmbpDictColumn::DictCodePath, dict_parent_code.clone());
             }
         }
         query_wrapper.order_by(BmbpDictColumn::DictParentCode, true);
@@ -735,21 +738,21 @@ impl BmbpDictService {
             dict_code_vec.push(item.get_dict_code().as_ref().unwrap().clone());
         }
         let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
-        let mut filter = RdbcTableFilterImpl::concat(RdbcConcatType::Or);
+        let mut filter = QueryFilter::concat(RdbcConcatType::Or);
         for code in dict_code_vec.as_slice() {
-            filter.like_value(BmbpDictColumn::DictCodePath, code.clone());
+            filter.like_(
+                RdbcColumn::from(BmbpDictColumn::DictCodePath),
+                bmbp_rdbc::RdbcValue::from(code),
+            );
         }
         query_wrapper.add_filter(filter);
         if cascade.is_none()
             || (!cascade.as_ref().unwrap().as_str().eq("1")
                 && !cascade.as_ref().unwrap().as_str().eq("true"))
         {
-            let mut filter2 = RdbcTableFilterImpl::concat(RdbcConcatType::Or);
-            filter2.in_v_slice(
-                BmbpDictColumn::DictCode.get_ident(),
-                dict_code_vec.as_slice(),
-            );
-            filter2.in_v_slice(BmbpDictColumn::DictParentCode, dict_code_vec.as_slice());
+            let mut filter2 = QueryFilter::concat(RdbcConcatType::Or);
+            filter2.in_v_s_(BmbpDictColumn::DictCode, dict_code_vec.as_slice());
+            filter2.in_v_s_(BmbpDictColumn::DictParentCode, dict_code_vec.as_slice());
             query_wrapper.add_filter(filter2);
         }
         let orm = parse_orm(depot)?;
@@ -886,7 +889,7 @@ impl BmbpDictService {
                     new_code_path,
                 ),
             );
-        update.like_left_value(BmbpDictColumn::DictCodePath, old_code_path);
+        update.like_left_(BmbpDictColumn::DictCodePath, old_code_path);
         BmbpCurdDao::execute_update::<BmbpDict>(orm, &update).await
     }
     fn convert_child_combo_to_display(code: &String, dict_vec: &Vec<BmbpCombo>) -> BmbpDisplay {

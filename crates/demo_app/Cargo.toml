@@ -13,11 +13,10 @@ documentation.workspace = true
 [dependencies]
 bmbp_config = { workspace = true }
 bmbp_lib_ui = { workspace = true }
-bmbp_rdbc_type = { workspace = true }
+bmbp_rdbc = { workspace = true }
 bmbp_http_type = { workspace = true }
 bmbp_auth = { workspace = true }
 bmbp_app_util = { workspace = true }
-bmbp_rdbc_orm = { workspace = true }
 bmbp_ctx_vars = { workspace = true }
 salvo = { workspace = true }
 tokio = { workspace = true }

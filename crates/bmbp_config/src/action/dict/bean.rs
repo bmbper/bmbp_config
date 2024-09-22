@@ -1,12 +1,12 @@
-use std::collections::HashMap;
-use bmbp_marco_bean::bean;
-use bmbp_marco_rdbc::table_rdbc_tree_bean_orm_option;
-use bmbp_rdbc_type::RdbcIdent;
-use bmbp_rdbc_type::RdbcOrmRow;
-use bmbp_rdbc_type::RdbcTable;
+use bmbp_marco::bean;
+use bmbp_marco::table_rdbc_tree_bean_orm_option;
+use bmbp_rdbc::RdbcIdent;
+use bmbp_rdbc::RdbcOrmRow;
+use bmbp_rdbc::RdbcTable;
 use bmbp_util::BmbpTree;
 use serde::Deserialize;
 use serde::Serialize;
+use std::collections::HashMap;
 
 #[table_rdbc_tree_bean_orm_option(BMBP_CONFIG_DICT, dict)]
 pub struct BmbpDict {

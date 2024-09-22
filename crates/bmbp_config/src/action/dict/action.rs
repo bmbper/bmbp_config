@@ -1,10 +1,11 @@
-use crate::action::dict::bean::{BmbpCombo, BmbpCombos, BmbpDict, BmbpDisplay, BatchReqVo, BatchComboVo};
-use bmbp_http_type::{BmbpPageReq, BmbpResp};
+use crate::action::dict::bean::{
+    BatchComboVo, BatchReqVo, BmbpCombo, BmbpCombos, BmbpDict, BmbpDisplay,
+};
+use crate::action::dict::service::BmbpDictService;
 use bmbp_http_type::PageData;
 use bmbp_http_type::RespVo;
-use salvo::{Depot, handler, Request, Response};
-use crate::action::dict::service::BmbpDictService;
-
+use bmbp_http_type::{BmbpPageReq, BmbpResp};
+use salvo::{handler, Depot, Request, Response};
 
 #[handler]
 pub async fn find_dict_tree(
@@ -127,7 +128,6 @@ pub async fn batch_enable_dict(
     Ok(RespVo::ok_data_msg(data, "启用字典成功!".to_string()))
 }
 
-
 #[handler]
 pub async fn batch_disable_dict(
     req: &mut Request,
@@ -138,7 +138,6 @@ pub async fn batch_disable_dict(
     let data = BmbpDictService::batch_disable_dict(depot, &dict_req).await?;
     Ok(RespVo::ok_data_msg(data, "停用字典成功!".to_string()))
 }
-
 
 #[handler]
 pub async fn remove_dict(

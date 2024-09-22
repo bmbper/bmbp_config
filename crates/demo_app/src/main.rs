@@ -1,17 +1,13 @@
 use async_static::async_static;
-use bmbp_auth::BmbpUser;
-use bmbp_ctx_vars::BMBP_CONTEXT_VARS;
-use bmbp_http_type::{BmbpResp, RespVo};
-use bmbp_lib_ui::build_bmbp_ui_lib_router;
-use bmbp_rdbc_orm::{RdbcOrm, RdbcResult};
-use bmbp_rdbc_type::{RdbcDataBase, RdbcDataSource};
+use bmbp_app_util::{
+    auth_token_middle, auth_user_middle, orm_middle, register_app_orm, BMBP_WHITE_URLS,
+};
 use bmbp_config::build_bmbp_config_router;
+use bmbp_ctx_vars::BMBP_CONTEXT_VARS;
+use bmbp_lib_ui::build_bmbp_ui_lib_router;
+use bmbp_rdbc::RdbcOrm;
+use bmbp_rdbc::{RdbcDataBase, RdbcDataSource};
 use salvo::prelude::*;
-use tracing::callsite::register;
-use tracing_subscriber::fmt::init;
-use tracing_subscriber::util::SubscriberInitExt;
-use bmbp_app_util::{auth_token_middle, auth_user_middle, BMBP_CURRENT_ORM, BMBP_CURRENT_USER, BMBP_WHITE_URLS, orm_middle, register_app_orm};
-
 
 async_static! {
     pub static ref RdbcOrmIns:RdbcOrm = build_orm().await;
@@ -40,7 +36,6 @@ pub async fn init_orm() {
     register_app_orm(rs);
 }
 
-
 #[tokio::main]
 async fn main() {
     init_white_urls();
@@ -49,8 +44,12 @@ async fn main() {
     let host = "0.0.0.0:9002";
     tracing::info!("启动初始化服务,监听地址:{}......", host);
     let acceptor = TcpListener::new(host).bind().await;
-    let router = Router::new().push(build_bmbp_ui_lib_router())
-        .hoop(auth_token_middle).hoop(auth_user_middle).hoop(orm_middle).push(build_bmbp_config_router());
+    let router = Router::new()
+        .push(build_bmbp_ui_lib_router())
+        .hoop(auth_token_middle)
+        .hoop(auth_user_middle)
+        .hoop(orm_middle)
+        .push(build_bmbp_config_router());
     Server::new(acceptor).serve(router).await;
 }
 

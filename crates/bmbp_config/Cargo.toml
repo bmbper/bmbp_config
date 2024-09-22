@@ -13,12 +13,9 @@ documentation.workspace = true
 [dependencies]
 bmbp_ctx_vars = { workspace = true }
 bmbp_lib_ui = { workspace = true }
-bmbp_marco_rdbc = { workspace = true }
-bmbp_marco_bean = { workspace = true }
-bmbp_rdbc_type = { workspace = true }
+bmbp_marco = { workspace = true }
 bmbp_http_type = { workspace = true }
-bmbp_rdbc_orm = { workspace = true }
-bmbp_rdbc_sql = { workspace = true }
+bmbp_rdbc = { workspace = true }
 bmbp_auth = { workspace = true }
 bmbp_app_util = { workspace = true }
 bmbp_util = { workspace = true }
