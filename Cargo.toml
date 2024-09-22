@@ -1,20 +1,15 @@
-[workspace]
-members = ["crates/*"]
-resolver = "2"
-[workspace.package]
-version = "0.0.0"
+[package]
+name = "bmbp_config"
+version = "0.0.1"
 edition = "2021"
 authors = ["bmbp<rs_bmbp.163.com>"]
-description = "BMBP CONFIG MODULE"
+description = "BMBP CONFIG"
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/bmbper/bmbp_config"
 repository = "https://github.com/bmbper/bmbp_config"
 documentation = "https://github.com/bmbper/bmbp_config"
-[workspace.dependencies]
-bmbp_config = { version = "0.0.0", path = "crates/bmbp_config" }
-demmo_app = { version = "0.0.0", path = "crates/demo_app" }
-
+[dependencies]
 # 宏
 bmbp_marco = "0.0.12"
 bmbp_util = "0.0.4"

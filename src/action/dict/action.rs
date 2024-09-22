@@ -25,6 +25,7 @@ pub async fn find_dict_page(
     depot: &mut Depot,
 ) -> BmbpResp<RespVo<PageData<BmbpDict>>> {
     let params = req.parse_json::<BmbpPageReq<BmbpDict>>().await?;
+    tracing::debug!("page params:{:#?}", params);
     let data = BmbpDictService::find_dict_page(depot, &params).await?;
     Ok(RespVo::ok_data_msg(data, "查询字典分页成功!".to_string()))
 }
