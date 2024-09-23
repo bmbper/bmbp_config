@@ -1,4 +1,4 @@
-import {PageAction, PageState} from "./action";
+import { PageAction, PageState } from "./action";
 import {
     AddDictFormDialog,
     ChangeDictShowOrderFormDialog,
@@ -17,8 +17,12 @@ const PageView = (props) => {
     PageAction.init(props);
     React.useEffect(() => {
         PageAction.findTreeData("");
-        PageAction.findGridData("");
     }, []);
+    React.useEffect(() => {
+        PageAction.findGridData();
+    }, [
+       PageState.pageData.pageNo, PageState.pageData.pageSize,PageState.selectTreeNodeData,PageState.searchFormData
+    ]);
     return (
         <div className="bmbp-app-fluid">
             <arco.Grid.Row guides={[1, 1]} style={{height: "100vh"}}>
@@ -160,6 +164,7 @@ const PageTreeView = () => {
 };
 
 const PageGridView = () => {
+    
     return (
         <div className="bmbp-grid-container">
             <PageGridSearchForm/>
@@ -203,9 +208,9 @@ const PageGridSearchForm = () => {
                                     type="primary"
                                     style={{marginLeft: "8px"}}
                                     onClick={() => {
-                                        let fromData =
+                                        let formData =
                                             PageState.searchFormRef.current.getFieldsValue();
-                                        PageAction.findGridData(fromData);
+                                        PageState.setSearchFormData(formData);
                                     }}
                                 >
                                     查询
@@ -227,7 +232,7 @@ const PageGridSearchForm = () => {
     );
 };
 const PageGridToolBar = () => {
-    debugger;
+    
     return (
         <div className="bmbp-grid-toolbar">
             <div className="bmbp-grid-toolbar major">

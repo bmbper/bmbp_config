@@ -87,7 +87,6 @@ var PageAction = {
       const { code, msg, data } = resp;
       if (code == 0) {
         PageState.setTreeData(data);
-        PageAction.findGridData({});
       } else {
         console.log("error:", resp);
         arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
@@ -97,12 +96,13 @@ var PageAction = {
       arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
     });
   },
-  findGridData: (searchFormData) => {
+  findGridData: () => {
+    let searchFormData = PageState.searchFormData;
     let pageParams = {
       pageNo: PageState.pageData.pageNo,
       pageSize: PageState.pageData.pageSize,
       params: {
-        parentDictCode: PageState.selectTreeNodeData?.dictCode,
+        dictParentCode: PageState.selectTreeNodeData?.dictCode,
         ...searchFormData
       }
     };
@@ -345,8 +345,15 @@ var PageView = (props) => {
   PageAction.init(props);
   React.useEffect(() => {
     PageAction.findTreeData("");
-    PageAction.findGridData("");
   }, []);
+  React.useEffect(() => {
+    PageAction.findGridData();
+  }, [
+    PageState.pageData.pageNo,
+    PageState.pageData.pageSize,
+    PageState.selectTreeNodeData,
+    PageState.searchFormData
+  ]);
   return /* @__PURE__ */ React.createElement("div", {
     className: "bmbp-app-fluid"
   }, /* @__PURE__ */ React.createElement(arco.Grid.Row, {
@@ -495,8 +502,8 @@ var PageGridSearchForm = () => {
     type: "primary",
     style: { marginLeft: "8px" },
     onClick: () => {
-      let fromData = PageState.searchFormRef.current.getFieldsValue();
-      PageAction.findGridData(fromData);
+      let formData = PageState.searchFormRef.current.getFieldsValue();
+      PageState.setSearchFormData(formData);
     }
   }, "\u67E5\u8BE2"), /* @__PURE__ */ React.createElement(arco.Button, {
     onClick: () => {
@@ -507,7 +514,6 @@ var PageGridSearchForm = () => {
   }));
 };
 var PageGridToolBar = () => {
-  debugger;
   return /* @__PURE__ */ React.createElement("div", {
     className: "bmbp-grid-toolbar"
   }, /* @__PURE__ */ React.createElement("div", {

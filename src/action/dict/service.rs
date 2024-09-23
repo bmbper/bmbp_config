@@ -713,9 +713,10 @@ impl BmbpDictService {
                 query_wrapper.like_left_(BmbpDictColumn::DictCodePath, dict_code.clone());
             }
             if let Some(dict_parent_code) = params.get_dict_parent_code() {
-                query_wrapper.like_left_(BmbpDictColumn::DictCodePath, dict_parent_code.clone());
+                query_wrapper.like_(BmbpDictColumn::DictCodePath, dict_parent_code.clone());
             }
         }
+        query_wrapper.order_by(BmbpDictColumn::DictTreeGrade, true);
         query_wrapper.order_by(BmbpDictColumn::DictParentCode, true);
         query_wrapper.order_by(BmbpDictColumn::DataSort, true);
         query_wrapper.order_by(BmbpDictColumn::DataCreateTime, true);

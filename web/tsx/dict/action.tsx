@@ -115,7 +115,6 @@ export const PageAction = {
                 const {code, msg, data} = resp;
                 if (code == 0) {
                     PageState.setTreeData(data);
-                    PageAction.findGridData({});
                 } else {
                     console.log("error:", resp);
                     arco.Message.error("系统好像是走丢了，请联系管理员");
@@ -126,12 +125,13 @@ export const PageAction = {
                 arco.Message.error("系统好像是走丢了，请联系管理员");
             });
     },
-    findGridData: (searchFormData: any) => {
+    findGridData: () => {
+        let searchFormData = PageState.searchFormData;
         let pageParams = {
             pageNo: PageState.pageData.pageNo,
             pageSize: PageState.pageData.pageSize,
             params: {
-                parentDictCode: PageState.selectTreeNodeData?.dictCode,
+                dictParentCode: PageState.selectTreeNodeData?.dictCode,
                 ...searchFormData,
             },
         };
@@ -245,6 +245,6 @@ export const PageAction = {
     },
 
     viewInfo(record: any) {
-        
+     
     }
 };
