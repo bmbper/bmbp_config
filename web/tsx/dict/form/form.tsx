@@ -1,4 +1,4 @@
-import {PageState} from "../action";
+import { PageState } from "../action";
 
 export const DictForm = () => {
     React.useEffect(() => {
@@ -23,8 +23,8 @@ export const DictForm = () => {
             <arco.Form.Item label="字典值" field="dictValue" rules={[{required: true, message: "请输入字典值"}]}>
                 <arco.Input placeholder="请输入字典值"/>
             </arco.Form.Item>
-            <arco.Form.Item label="排序" field="dataSort">
-                <arco.InputNumber placeholder="请输入显示顺序"/>
+            <arco.Form.Item label="排序" field="dictOrder">
+                <arco.InputNumber placeholder="请输入顺序"/>
             </arco.Form.Item>
         </arco.Form>
     );

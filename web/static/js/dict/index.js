@@ -248,9 +248,9 @@ var DictForm = () => {
     placeholder: "\u8BF7\u8F93\u5165\u5B57\u5178\u503C"
   })), /* @__PURE__ */ React.createElement(arco.Form.Item, {
     label: "\u6392\u5E8F",
-    field: "dataSort"
+    field: "dictOrder"
   }, /* @__PURE__ */ React.createElement(arco.InputNumber, {
-    placeholder: "\u8BF7\u8F93\u5165\u663E\u793A\u987A\u5E8F"
+    placeholder: "\u8BF7\u8F93\u5165\u987A\u5E8F"
   })));
 };
 

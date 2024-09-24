@@ -311,6 +311,11 @@ impl BmbpDictService {
             BmbpDictColumn::DataStatus.get_ident(),
             params.get_data_status().clone().unwrap_or("0".to_string()),
         );
+        insert_wrapper.insert_column_value(
+            BmbpDictColumn::DictOrder.get_ident(),
+            params.get_dict_order().clone().unwrap_or(0usize),
+        );
+
         insert_wrapper
             .insert_column_value(BmbpDictColumn::DataCreateTime.get_ident(), current_time());
         insert_wrapper
@@ -372,6 +377,9 @@ impl BmbpDictService {
             }
             if params.get_data_sort().is_none() {
                 params.set_data_sort(dict_info.get_data_sort().clone());
+            }
+            if params.get_dict_order().is_none() {
+                params.set_dict_order(dict_info.get_dict_order().clone());
             }
         } else {
             return Err(BmbpRespErr::err(
@@ -473,6 +481,8 @@ impl BmbpDictService {
         update_wrapper.set(BmbpDictColumn::DataSort, params.get_data_sort().unwrap());
         update_wrapper.set(BmbpDictColumn::DataUpdateTime, current_time());
         update_wrapper.set(BmbpDictColumn::DataUpdateUser, "");
+        update_wrapper.set(BmbpDictColumn::DictOrder, params.get_dict_order().clone());
+
         update_wrapper.eq_(
             BmbpDictColumn::DataId,
             params.get_data_id().as_ref().unwrap(),
