@@ -16,7 +16,7 @@ window.onload = () => {
 const PageView = (props) => {
     PageAction.init(props);
     React.useEffect(() => {
-        PageAction.findTreeData("");
+        PageAction.findTreeData(null);
     }, []);
     React.useEffect(() => {
         PageAction.findGridData();
@@ -416,7 +416,6 @@ const PageGridTable = () => {
             fixed: "right",
             align: "left",
             render: (value, record, index) => {
-                debugger
                 return (
                     <arco.Space>
                         {record.dataStatus === "1" ? enableAction(record) : disableAction(record)}
@@ -428,18 +427,22 @@ const PageGridTable = () => {
     const gridRowSelection = {
         checkAll: true,
         checkCrossPage: true,
-        preserveSelectedRowKeys: true,
         fixed: true,
         columnWidth: 40,
         type: "checkbox",
+        selectedRowKeys: PageState.selectedRowKeys,
         onChange: (selectedRowKeys, selectedRows) => {
             PageState.setSelectedRowKeys(selectedRowKeys);
             PageState.setSelectedRows(selectedRows);
+        },
+        onSelect: (selected, record, selectedRows) => {
+            
         },
     };
     return (
         <div className="bmbp-grid-table">
             <arco.Table
+                rowKey='dataId'
                 columns={gridColumn}
                 data={PageState.gridData}
                 rowSelection={gridRowSelection}

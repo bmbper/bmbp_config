@@ -79,7 +79,7 @@ var PageAction = {
     PageState.exportFormRef = React.useRef();
   },
   findTreeData: (v) => {
-    if (!v || v == "") {
+    if (!v && v == "") {
       PageState.setSelectTreeNodeKeys([]);
       PageState.setSelectTreeNodeData({});
     }
@@ -87,6 +87,7 @@ var PageAction = {
       const { code, msg, data } = resp;
       if (code == 0) {
         PageState.setTreeData(data);
+        PageAction.findGridData();
       } else {
         console.log("error:", resp);
         arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
@@ -168,7 +169,7 @@ var PageAction = {
     axios.post(PageUrl.removeUrl + "?dataId=" + node.dataId, {}).then((resp) => {
       if (resp.code == 0) {
         arco.Message.success(resp.msg);
-        PageAction.findTreeData("");
+        PageAction.findTreeData(null);
       } else {
         arco.Message.error(resp.msg);
       }
@@ -181,7 +182,7 @@ var PageAction = {
     axios.post(PageUrl.enableUrl + "?dataId=" + node.dataId, {}).then((resp) => {
       if (resp.code == 0) {
         arco.Message.success(resp.msg);
-        PageAction.findTreeData("");
+        PageAction.findTreeData(null);
       } else {
         arco.Message.error(resp.msg);
       }
@@ -191,7 +192,7 @@ var PageAction = {
     axios.post(PageUrl.disableUrl + "?dataId=" + node.dataId, {}).then((resp) => {
       if (resp.code == 0) {
         arco.Message.success(resp.msg);
-        PageAction.findTreeData("");
+        PageAction.findTreeData(null);
       } else {
         arco.Message.error(resp.msg);
       }
@@ -344,7 +345,7 @@ window.onload = () => {
 var PageView = (props) => {
   PageAction.init(props);
   React.useEffect(() => {
-    PageAction.findTreeData("");
+    PageAction.findTreeData(null);
   }, []);
   React.useEffect(() => {
     PageAction.findGridData();
@@ -686,7 +687,6 @@ var PageGridTable = () => {
       fixed: "right",
       align: "left",
       render: (value, record, index) => {
-        debugger;
         return /* @__PURE__ */ React.createElement(arco.Space, null, record.dataStatus === "1" ? enableAction(record) : disableAction(record));
       }
     }
@@ -694,18 +694,21 @@ var PageGridTable = () => {
   const gridRowSelection = {
     checkAll: true,
     checkCrossPage: true,
-    preserveSelectedRowKeys: true,
     fixed: true,
     columnWidth: 40,
     type: "checkbox",
+    selectedRowKeys: PageState.selectedRowKeys,
     onChange: (selectedRowKeys, selectedRows) => {
       PageState.setSelectedRowKeys(selectedRowKeys);
       PageState.setSelectedRows(selectedRows);
+    },
+    onSelect: (selected, record, selectedRows) => {
     }
   };
   return /* @__PURE__ */ React.createElement("div", {
     className: "bmbp-grid-table"
   }, /* @__PURE__ */ React.createElement(arco.Table, {
+    rowKey: "dataId",
     columns: gridColumn,
     data: PageState.gridData,
     rowSelection: gridRowSelection,

@@ -1,6 +1,7 @@
 use bmbp_app_util::{parse_orm, parse_user_orm};
 use bmbp_http_type::{BmbpPageReq, BmbpResp, BmbpRespErr, PageData};
 
+use bmbp_rdbc::DeleteWrapper;
 use bmbp_rdbc::InsertWrapper;
 use bmbp_rdbc::QueryFilter;
 use bmbp_rdbc::QueryWrapper;
@@ -596,16 +597,41 @@ impl BmbpDictService {
         params: Option<&String>,
     ) -> BmbpResp<Option<u64>> {
         let orm = parse_orm(depot)?;
-        BmbpCurdService::remove::<BmbpDict>(orm, params).await
+
+        let dict_info = BmbpCurdService::find_info_by_id::<BmbpDict>(orm, params).await?;
+        if dict_info.is_none() {
+            return Err(BmbpRespErr::err(
+                Some("SERVICE".to_string()),
+                Some("未找到字典信息".to_string()),
+            ));
+        }
+        let code_path = dict_info
+            .as_ref()
+            .unwrap()
+            .get_dict_code_path()
+            .as_ref()
+            .unwrap()
+            .clone();
+        let mut delete_wrapper = DeleteWrapper::new();
+        delete_wrapper.table(BmbpDict::get_table());
+        delete_wrapper.like_left_(BmbpDictColumn::DictCodePath, code_path);
+        let res = BmbpCurdDao::execute_delete::<BmbpDict>(orm, &delete_wrapper).await?;
+        Ok(res)
     }
 
     pub(crate) async fn batch_remove_dict(
         depot: &mut Depot,
         params: &BatchReqVo,
     ) -> BmbpResp<Option<u64>> {
-        let orm = parse_orm(depot)?;
         let data_ids = params.get_ids().clone().unwrap_or(vec![]);
-        BmbpCurdService::batch_remove::<BmbpDict>(orm, data_ids.as_slice()).await
+        let mut res = 0u64;
+        for id in data_ids {
+            let resp = Self::remove_dict(depot, Some(&id)).await?;
+            if resp.is_some() {
+                res += resp.unwrap();
+            }
+        }
+        Ok(Some(res))
     }
 
     pub(crate) async fn update_order(

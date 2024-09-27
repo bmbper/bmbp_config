@@ -104,8 +104,8 @@ export const PageAction = {
         PageState.importFormRef = React.useRef();
         PageState.exportFormRef = React.useRef();
     },
-    findTreeData: (v: String) => {
-        if (!v || v == "") {
+    findTreeData: (v: String|null) => {
+        if (!v && v == "") {
             PageState.setSelectTreeNodeKeys([]);
             PageState.setSelectTreeNodeData({});
         }
@@ -115,6 +115,7 @@ export const PageAction = {
                 const {code, msg, data} = resp;
                 if (code == 0) {
                     PageState.setTreeData(data);
+                    PageAction.findGridData();
                 } else {
                     console.log("error:", resp);
                     arco.Message.error("系统好像是走丢了，请联系管理员");
@@ -206,7 +207,7 @@ export const PageAction = {
             .then((resp: any) => {
                 if (resp.code == 0) {
                     arco.Message.success(resp.msg);
-                    PageAction.findTreeData("");
+                    PageAction.findTreeData(null);
                 } else {
                     arco.Message.error(resp.msg);
                 }
@@ -220,7 +221,7 @@ export const PageAction = {
             .then((resp: any) => {
                 if (resp.code == 0) {
                     arco.Message.success(resp.msg);
-                    PageAction.findTreeData("");
+                    PageAction.findTreeData(null);
                 } else {
                     arco.Message.error(resp.msg);
                 }
@@ -231,7 +232,7 @@ export const PageAction = {
             .then((resp: any) => {
                 if (resp.code == 0) {
                     arco.Message.success(resp.msg);
-                    PageAction.findTreeData("");
+                    PageAction.findTreeData(null);
                 } else {
                     arco.Message.error(resp.msg);
                 }
