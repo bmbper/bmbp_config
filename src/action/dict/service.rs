@@ -751,6 +751,16 @@ impl BmbpDictService {
             if let Some(dict_parent_code) = params.get_dict_parent_code() {
                 query_wrapper.like_(BmbpDictColumn::DictCodePath, dict_parent_code.clone());
             }
+
+            if let Some(dict_alias) = params.get_dict_alias() {
+                query_wrapper.like_(BmbpDictColumn::DictAlias, dict_alias.clone());
+            }
+            if let Some(dict_name) = params.get_dict_name() {
+                query_wrapper.like_(BmbpDictColumn::DictName, dict_name.clone());
+            }
+            if let Some(data_status) = params.get_data_status() {
+                query_wrapper.eq_(BmbpDictColumn::DataStatus, data_status.clone());
+            }
         }
         query_wrapper.order_by(BmbpDictColumn::DictTreeGrade, true);
         query_wrapper.order_by(BmbpDictColumn::DictParentCode, true);
