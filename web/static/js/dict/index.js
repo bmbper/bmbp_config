@@ -2,6 +2,7 @@
 var PageState = {};
 var PageUrl = {
   findTreeUrl: "./tree",
+  findIgnoreTreeUrl: "./tree/ignore",
   findPageUrl: "./page",
   saveUrl: "./save",
   findInfoUrl: "./info",
@@ -58,6 +59,12 @@ var PageAction = {
     const [changeParentFormDialogVisible, setChangeParentFormDialogVisible] = React.useState(false);
     PageState.changeParentFormDialogVisible = changeParentFormDialogVisible;
     PageState.setChangeParentFormDialogVisible = setChangeParentFormDialogVisible;
+    const [waitChangeDictDataId, setWaitChangeDictDataId] = React.useState("");
+    PageState.waitChangeDictDataId = waitChangeDictDataId;
+    PageState.setWaitChangeDictDataId = setWaitChangeDictDataId;
+    const [parentTreeData, setParentTreeData] = React.useState([]);
+    PageState.parentTreeData = parentTreeData;
+    PageState.setParentTreeData = setParentTreeData;
     const [
       changeShowOrderFormDialogVisible,
       setChangeShowOrderFormDialogVisible
@@ -88,6 +95,20 @@ var PageAction = {
       if (code == 0) {
         PageState.setTreeData(data);
         PageAction.findGridData();
+      } else {
+        console.log("error:", resp);
+        arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
+      }
+    }).catch((err) => {
+      console.log("error:", err);
+      arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
+    });
+  },
+  findTreeDataIgnoreDataId: (dataId) => {
+    axios.post(PageUrl.findIgnoreTreeUrl, { dataId }).then((resp) => {
+      const { code, msg, data } = resp;
+      if (code == 0) {
+        PageState.setParentTreeData(data);
       } else {
         console.log("error:", resp);
         arco.Message.error("\u7CFB\u7EDF\u597D\u50CF\u662F\u8D70\u4E22\u4E86\uFF0C\u8BF7\u8054\u7CFB\u7BA1\u7406\u5458");
@@ -199,10 +220,8 @@ var PageAction = {
     });
   },
   changeParentNode: (node) => {
-    console.log("delDict");
-  },
-  changeOrderNode: (node) => {
-    console.log("delDict");
+    PageState.setWaitChangeDictDataId(node.dataId);
+    PageState.setChangeParentFormDialogVisible(true);
   },
   viewInfo(record) {
   }
@@ -252,6 +271,36 @@ var DictForm = () => {
     field: "dictOrder"
   }, /* @__PURE__ */ React.createElement(arco.InputNumber, {
     placeholder: "\u8BF7\u8F93\u5165\u987A\u5E8F"
+  })));
+};
+var DictParentForm = () => {
+  React.useEffect(() => {
+    if (PageState.waitChangeDictDataId && PageState.changeParentFormDialogVisible) {
+      PageAction.findTreeDataIgnoreDataId(PageState.waitChangeDictDataId);
+      PageState.changeParentFormRef?.current.setFieldsValue({ dataId: PageState.waitChangeDictDataId });
+    }
+  }, [PageState.waitChangeDictDataId]);
+  return /* @__PURE__ */ React.createElement(arco.Form, {
+    ref: PageState.changeParentFormRef
+  }, /* @__PURE__ */ React.createElement(arco.Form.Item, {
+    label: "\u4E3B\u952E",
+    field: "dataId",
+    hidden: true
+  }, /* @__PURE__ */ React.createElement(arco.Input, {
+    placeholder: ""
+  })), /* @__PURE__ */ React.createElement(arco.Form.Item, {
+    label: "\u76EE\u6807\u5B57\u5178",
+    field: "dictParentCode",
+    hidden: false,
+    rules: [{ required: true, message: "\u8BF7\u9009\u62E9\u76EE\u6807\u5B57\u5178" }]
+  }, /* @__PURE__ */ React.createElement(arco.TreeSelect, {
+    treeData: PageState.parentTreeData,
+    fieldNames: {
+      key: "dataId",
+      title: "dictName",
+      children: "dictChildren"
+    },
+    placeholder: "\u8BF7\u9009\u62E9\u76EE\u6807\u5B57\u5178"
   })));
 };
 
@@ -305,12 +354,24 @@ var InfoDictFormDialog = () => {
   }));
 };
 var ChangeParentDictFormDialog = () => {
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(arco.Modal, {
-    title: "\u67E5\u770B\u5B57\u5178",
+  return /* @__PURE__ */ React.createElement(arco.Modal, {
+    title: "\u53D8\u66F4\u4E0A\u7EA7",
     visible: PageState.changeParentFormDialogVisible,
-    onOk: () => PageState.setChangeParentFormDialogVisible(false),
-    onCancel: () => PageState.setChangeParentFormDialogVisible(false)
-  }));
+    onOk: () => {
+      PageState.changeParentFormRef.current?.validate().then((data) => {
+        debugger;
+        PageAction.save(data, () => {
+          PageState.setChangeParentFormDialogVisible(false);
+          PageState.changeParentFormRef.current?.resetFields();
+          PageAction.findTreeData("");
+        });
+      });
+    },
+    onCancel: () => {
+      PageState.changeParentFormRef.current?.resetFields();
+      PageState.setChangeParentFormDialogVisible(false);
+    }
+  }, /* @__PURE__ */ React.createElement(DictParentForm, null));
 };
 var ChangeDictShowOrderFormDialog = () => {
   return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(arco.Modal, {

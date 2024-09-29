@@ -97,21 +97,7 @@ impl BmbpDictService {
         let orm = parse_orm(depot)?;
         BmbpCurdService::find_info_by_id::<BmbpDict>(orm, params).await
     }
-    pub(crate) async fn find_dict_info_by_alias(
-        depot: &mut Depot,
-        alias: Option<&String>,
-    ) -> BmbpResp<Option<BmbpDict>> {
-        if alias.is_none() || alias.as_ref().unwrap().is_empty() {
-            return Err(BmbpRespErr::err(
-                Some("VALID".to_string()),
-                Some("请传入字典编码".to_string()),
-            ));
-        }
-        let mut query_wrapper = QueryWrapper::new_from::<BmbpDict>();
-        query_wrapper.eq_(BmbpDictColumn::DictAlias, alias.unwrap().clone());
-        let orm = parse_orm(depot)?;
-        BmbpCurdDao::execute_query_one::<BmbpDict>(orm, &query_wrapper).await
-    }
+
     pub(crate) async fn find_dict_info_by_code(
         depot: &mut Depot,
         code: Option<&String>,
@@ -354,9 +340,7 @@ impl BmbpDictService {
         let mut old_dict_parent_code = "".to_string();
         let mut old_dict_code_path = "".to_string();
         let mut old_dict_name_path = "".to_string();
-        if let Some(mut dict_info) =
-            Self::find_dict_info(depot, params.get_data_id().as_ref()).await?
-        {
+        if let Some(dict_info) = Self::find_dict_info(depot, params.get_data_id().as_ref()).await? {
             old_dict_parent_code = dict_info.get_dict_parent_code().clone().unwrap();
             old_dict_name = dict_info.get_dict_name().clone().unwrap();
             old_dict_code_path = dict_info.get_dict_code_path().clone().unwrap();

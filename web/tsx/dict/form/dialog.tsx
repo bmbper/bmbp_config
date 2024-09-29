@@ -1,5 +1,5 @@
 import { PageAction, PageState } from "../action";
-import { DictForm } from "./form";
+import { DictForm, DictParentForm } from "./form";
 
 export const AddDictFormDialog = () => {
   return (
@@ -67,14 +67,26 @@ export const InfoDictFormDialog = () => {
 };
 export const ChangeParentDictFormDialog = () => {
   return (
-    <>
       <arco.Modal
-        title="查看字典"
+        title="变更上级"
         visible={PageState.changeParentFormDialogVisible}
-        onOk={() => PageState.setChangeParentFormDialogVisible(false)}
-        onCancel={() => PageState.setChangeParentFormDialogVisible(false)}
-      ></arco.Modal>
-    </>
+               onOk={() => {
+                 PageState.changeParentFormRef.current?.validate().then((data: any) => {
+                   debugger;
+            PageAction.save(data, () => {
+              PageState.setChangeParentFormDialogVisible(false);
+              PageState.changeParentFormRef.current?.resetFields();
+              PageAction.findTreeData("");
+            });
+          });
+        }}
+        onCancel={() => {
+          PageState.changeParentFormRef.current?.resetFields();
+          PageState.setChangeParentFormDialogVisible(false);
+        }}
+    >    
+      <DictParentForm/>
+    </arco.Modal>
   );
 };
 export const ChangeDictShowOrderFormDialog = () => {

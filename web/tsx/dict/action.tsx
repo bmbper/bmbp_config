@@ -3,6 +3,7 @@ export const PageState: any = {};
 
 export const PageUrl = {
     findTreeUrl: "./tree",
+    findIgnoreTreeUrl: "./tree/ignore",
     findPageUrl: "./page",
     saveUrl: "./save",
     findInfoUrl: "./info",
@@ -22,11 +23,12 @@ export const PageAction = {
         const [selectTreeNodeData, setSelectTreeNodeData] = React.useState();
         PageState.selectTreeNodeData = selectTreeNodeData;
         PageState.setSelectTreeNodeData = setSelectTreeNodeData;
-
+        
+        // 字典树选中节点KEY
         const [selectTreeNodeKeys, setSelectTreeNodeKeys] = React.useState([]);
         PageState.selectTreeNodeKeys = selectTreeNodeKeys;
         PageState.setSelectTreeNodeKeys = setSelectTreeNodeKeys;
-
+        
         // 字典列表-查询数据
         const [searchFormData, setSearchFormData] = React.useState({});
         PageState.setSearchFormData = setSearchFormData;
@@ -61,24 +63,35 @@ export const PageAction = {
         const [currentDictData, setCurrentDictData] = React.useState({});
         PageState.currentDictData = currentDictData;
         PageState.setCurrentDictData = setCurrentDictData;
-
+        // 新增字典
         const [addFormDialogVisible, setAddFormDialogVisible] =
             React.useState(false);
         PageState.addFormDialogVisible = addFormDialogVisible;
         PageState.setAddFormDialogVisible = setAddFormDialogVisible;
+        // 编辑字典
         const [editFormDialogVisible, setEditFormDialogVisible] =
             React.useState(false);
         PageState.editFormDialogVisible = editFormDialogVisible;
         PageState.setEditFormDialogVisible = setEditFormDialogVisible;
+        // 查看字典
         const [infoFormDialogVisible, setInfoFormDialogVisible] =
             React.useState(false);
         PageState.infoFormDialogVisible = infoFormDialogVisible;
         PageState.setInfoFormDialogVisible = setInfoFormDialogVisible;
+        // 变更上级
         const [changeParentFormDialogVisible, setChangeParentFormDialogVisible] =
             React.useState(false);
         PageState.changeParentFormDialogVisible = changeParentFormDialogVisible;
         PageState.setChangeParentFormDialogVisible =
             setChangeParentFormDialogVisible;
+        // 待变更的字典
+        const [waitChangeDictDataId, setWaitChangeDictDataId] = React.useState("");
+        PageState.waitChangeDictDataId = waitChangeDictDataId;
+        PageState.setWaitChangeDictDataId = setWaitChangeDictDataId;
+        const [parentTreeData, setParentTreeData] = React.useState([]);
+        PageState.parentTreeData = parentTreeData;
+        PageState.setParentTreeData = setParentTreeData;
+        // 改变排序
         const [
             changeShowOrderFormDialogVisible,
             setChangeShowOrderFormDialogVisible,
@@ -87,10 +100,12 @@ export const PageAction = {
             changeShowOrderFormDialogVisible;
         PageState.setChangeShowOrderFormDialogVisible =
             setChangeShowOrderFormDialogVisible;
+        // 导入功能
         const [importFormDialogVisible, setImportFormDialogVisible] =
             React.useState(false);
         PageState.importFormDialogVisible = importFormDialogVisible;
         PageState.setImportFormDialogVisible = setImportFormDialogVisible;
+        // 导出功能
         const [exportFormDialogVisible, setExportFormDialogVisible] =
             React.useState(false);
         PageState.exportFormDialogVisible = exportFormDialogVisible;
@@ -104,7 +119,7 @@ export const PageAction = {
         PageState.importFormRef = React.useRef();
         PageState.exportFormRef = React.useRef();
     },
-    findTreeData: (v: String|null) => {
+    findTreeData: (v:String|null) => {
         if (!v && v == "") {
             PageState.setSelectTreeNodeKeys([]);
             PageState.setSelectTreeNodeData({});
@@ -116,6 +131,23 @@ export const PageAction = {
                 if (code == 0) {
                     PageState.setTreeData(data);
                     PageAction.findGridData();
+                } else {
+                    console.log("error:", resp);
+                    arco.Message.error("系统好像是走丢了，请联系管理员");
+                }
+            })
+            .catch((err: any) => {
+                console.log("error:", err);
+                arco.Message.error("系统好像是走丢了，请联系管理员");
+            });
+    },
+    findTreeDataIgnoreDataId: (dataId: String) => {
+        axios
+            .post(PageUrl.findIgnoreTreeUrl, {dataId: dataId})
+            .then((resp: any) => {
+                const {code, msg, data} = resp;
+                if (code == 0) {
+                    PageState.setParentTreeData(data);
                 } else {
                     console.log("error:", resp);
                     arco.Message.error("系统好像是走丢了，请联系管理员");
@@ -239,13 +271,11 @@ export const PageAction = {
             })
     },
     changeParentNode: (node) => {
-        console.log("delDict");
-    },
-    changeOrderNode: (node) => {
-        console.log("delDict");
+        PageState.setWaitChangeDictDataId(node.dataId);
+        PageState.setChangeParentFormDialogVisible(true);
     },
 
     viewInfo(record: any) {
-     
+        
     }
 };
