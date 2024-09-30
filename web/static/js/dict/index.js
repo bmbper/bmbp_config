@@ -8,7 +8,8 @@ var PageUrl = {
   findInfoUrl: "./info",
   removeUrl: "./remove",
   enableUrl: "./enable",
-  disableUrl: "./disable"
+  disableUrl: "./disable",
+  updateParentUrl: "./update/parent"
 };
 var PageAction = {
   init: (props) => {
@@ -186,6 +187,16 @@ var PageAction = {
       }
     });
   },
+  updateParent(dictData, callback) {
+    axios.post(PageUrl.updateParentUrl, dictData).then((resp) => {
+      if (resp.code == 0) {
+        arco.Message.success(resp.msg);
+        callback();
+      } else {
+        arco.Message.error(resp.msg);
+      }
+    });
+  },
   removeNode: (node) => {
     axios.post(PageUrl.removeUrl + "?dataId=" + node.dataId, {}).then((resp) => {
       if (resp.code == 0) {
@@ -291,12 +302,11 @@ var DictParentForm = () => {
   })), /* @__PURE__ */ React.createElement(arco.Form.Item, {
     label: "\u76EE\u6807\u5B57\u5178",
     field: "dictParentCode",
-    hidden: false,
-    rules: [{ required: true, message: "\u8BF7\u9009\u62E9\u76EE\u6807\u5B57\u5178" }]
+    hidden: false
   }, /* @__PURE__ */ React.createElement(arco.TreeSelect, {
     treeData: PageState.parentTreeData,
     fieldNames: {
-      key: "dataId",
+      key: "dictCode",
       title: "dictName",
       children: "dictChildren"
     },
@@ -360,7 +370,7 @@ var ChangeParentDictFormDialog = () => {
     onOk: () => {
       PageState.changeParentFormRef.current?.validate().then((data) => {
         debugger;
-        PageAction.save(data, () => {
+        PageAction.updateParent(data, () => {
           PageState.setChangeParentFormDialogVisible(false);
           PageState.changeParentFormRef.current?.resetFields();
           PageAction.findTreeData("");
@@ -580,12 +590,12 @@ var PageGridToolBar = () => {
     className: "bmbp-grid-toolbar"
   }, /* @__PURE__ */ React.createElement("div", {
     className: "bmbp-grid-toolbar major"
-  }, PageState.selectTreeNodeData ? /* @__PURE__ */ React.createElement(arco.Button, {
+  }, /* @__PURE__ */ React.createElement(arco.Button, {
     type: "primary",
     onClick: () => {
-      PageAction.addChildNode(PageState.selectTreeNodeData.dataRef);
+      PageAction.addChildNode(PageState.selectTreeNodeData?.dataRef);
     }
-  }, "\u65B0\u589E") : null, PageState.selectedRowKeys && PageState.selectedRowKeys.length > 0 ? /* @__PURE__ */ React.createElement(arco.Button, {
+  }, "\u65B0\u589E"), PageState.selectedRowKeys && PageState.selectedRowKeys.length > 0 ? /* @__PURE__ */ React.createElement(arco.Button, {
     type: "primary",
     status: "danger",
     onClick: () => {
@@ -635,6 +645,7 @@ var PageGridTable = () => {
         icon: /* @__PURE__ */ React.createElement(arcoicon.IconStrikethrough, null),
         size: "mini",
         onClick: () => {
+          PageAction.changeParentNode(record);
         }
       }))
     ];

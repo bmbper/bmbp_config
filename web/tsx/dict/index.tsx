@@ -236,16 +236,14 @@ const PageGridToolBar = () => {
     return (
         <div className="bmbp-grid-toolbar">
             <div className="bmbp-grid-toolbar major">
-                {PageState.selectTreeNodeData ? (
-                    <arco.Button
+                <arco.Button
                         type="primary"
                         onClick={() => {
-                            PageAction.addChildNode(PageState.selectTreeNodeData.dataRef);
+                            PageAction.addChildNode(PageState.selectTreeNodeData?.dataRef);
                         }}
                     >
                         新增
-                    </arco.Button>
-                ) : null}
+                </arco.Button>
                 {PageState.selectedRowKeys && PageState.selectedRowKeys.length > 0 ? (
                     <arco.Button
                         type="primary"
@@ -304,6 +302,7 @@ const PageGridTable = () => {
                     icon={<arcoicon.IconStrikethrough/>}
                     size="mini"
                     onClick={() => {
+                         PageAction.changeParentNode(record);
                     }}
                 ></arco.Button>
             </arco.Tooltip>,

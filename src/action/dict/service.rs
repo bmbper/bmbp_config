@@ -71,7 +71,10 @@ impl BmbpDictService {
                     Some("未找到字典信息".to_string()),
                 ));
             }
-            query_wrapper.not_like_left_(BmbpDictColumn::DictCodePath, dict_id.clone());
+            query_wrapper.not_like_left_(
+                BmbpDictColumn::DictCodePath,
+                dict.unwrap().get_dict_code_path(),
+            );
         }
         if let Some(dict_code) = params.get_dict_code() {
             query_wrapper.not_like_left_(BmbpDictColumn::DictCodePath, dict_code.clone());
@@ -392,12 +395,12 @@ impl BmbpDictService {
                 Self::find_dict_info_by_code(depot, params.get_dict_parent_code().as_ref()).await?
             {
                 dict_code_path = format!(
-                    "{},{},",
+                    "{}{},",
                     parent_node.get_dict_code_path().clone().unwrap(),
-                    parent_node.get_dict_name_path().clone().unwrap()
+                    params.get_dict_code().clone().unwrap()
                 );
                 dict_name_path = format!(
-                    "{},{},",
+                    "{}{},",
                     parent_node.get_dict_name_path().clone().unwrap(),
                     params.get_dict_name().as_ref().unwrap()
                 );
@@ -510,6 +513,7 @@ impl BmbpDictService {
             .unwrap()
             .clone();
         let code_vec: Vec<&str> = code_path.split(',').filter(|&s| !s.is_empty()).collect();
+        print!("==>{:#?}", code_vec);
         let mut update_wrapper = UpdateWrapper::new();
         update_wrapper.set("data_status", "1");
         update_wrapper.table(BmbpDict::get_table().get_ident());
@@ -635,10 +639,7 @@ impl BmbpDictService {
         if params.get_dict_parent_code().is_none()
             || params.get_dict_parent_code().as_ref().unwrap().is_empty()
         {
-            return Err(BmbpRespErr::err(
-                Some("REQUEST".to_string()),
-                Some("字典父级不能为空".to_string()),
-            ));
+            params.set_dict_parent_code(Some(BMBP_TREE_ROOT_NODE.to_string()));
         }
         if params.get_data_id().is_none() || params.get_data_id().as_ref().unwrap().is_empty() {
             return Err(BmbpRespErr::err(

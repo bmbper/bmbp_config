@@ -71,9 +71,9 @@ export const DictParentForm = () => {
             <arco.Form.Item label="主键" field="dataId" hidden={true}>
                 <arco.Input placeholder=""/>
             </arco.Form.Item>
-            <arco.Form.Item label="目标字典" field="dictParentCode" hidden={false} rules={[{required: true, message: "请选择目标字典"}]}>
+            <arco.Form.Item label="目标字典" field="dictParentCode" hidden={false}>
                 <arco.TreeSelect treeData={PageState.parentTreeData}  fieldNames={{
-                                                                                        key: 'dataId',
+                                                                                        key: 'dictCode',
                                                                                         title: 'dictName',
                                                                                         children: 'dictChildren',
                                                                                         }} placeholder="请选择目标字典"/>

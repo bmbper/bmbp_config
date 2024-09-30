@@ -10,6 +10,7 @@ export const PageUrl = {
     removeUrl: "./remove",
     enableUrl: "./enable",
     disableUrl: "./disable",
+    updateParentUrl: "./update/parent",
 };
 // 全局方法
 export const PageAction = {
@@ -226,6 +227,16 @@ export const PageAction = {
     },
     save(dictData: any, callback: () => void) {
         axios.post(PageUrl.saveUrl, dictData).then((resp: any) => {
+            if (resp.code == 0) {
+                arco.Message.success(resp.msg);
+                callback();
+            } else {
+                arco.Message.error(resp.msg);
+            }
+        });
+    },
+    updateParent(dictData: any, callback: () => void) {
+        axios.post(PageUrl.updateParentUrl, dictData).then((resp: any) => {
             if (resp.code == 0) {
                 arco.Message.success(resp.msg);
                 callback();

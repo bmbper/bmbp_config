@@ -73,7 +73,7 @@ export const ChangeParentDictFormDialog = () => {
                onOk={() => {
                  PageState.changeParentFormRef.current?.validate().then((data: any) => {
                    debugger;
-            PageAction.save(data, () => {
+            PageAction.updateParent(data, () => {
               PageState.setChangeParentFormDialogVisible(false);
               PageState.changeParentFormRef.current?.resetFields();
               PageAction.findTreeData("");
