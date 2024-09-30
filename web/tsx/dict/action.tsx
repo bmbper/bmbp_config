@@ -134,7 +134,7 @@ export const PageAction = {
                     PageAction.findGridData();
                 } else {
                     console.log("error:", resp);
-                    arco.Message.error("系统好像是走丢了，请联系管理员");
+                    arco.Message.error(resp.msg);
                 }
             })
             .catch((err: any) => {
@@ -151,7 +151,7 @@ export const PageAction = {
                     PageState.setParentTreeData(data);
                 } else {
                     console.log("error:", resp);
-                    arco.Message.error("系统好像是走丢了，请联系管理员");
+                    arco.Message.error(resp.msg);
                 }
             })
             .catch((err: any) => {
@@ -178,7 +178,7 @@ export const PageAction = {
                     PageState.setPageData({...PageState.pageData, total: data.total});
                 } else {
                     console.log("error:", resp);
-                    arco.Message.error("系统好像是走丢了，请联系管理员");
+                    arco.Message.error(resp.msg);
                 }
             })
             .catch((err: any) => {
@@ -286,7 +286,17 @@ export const PageAction = {
         PageState.setChangeParentFormDialogVisible(true);
     },
 
-    viewInfo(record: any) {
-        
+    viewInfo(node: any) {
+         let dataId = node.dataId;
+        axios
+            .post(PageUrl.findInfoUrl + "?dataId=" + dataId, {})
+            .then((resp: any) => {
+                if (resp.code == 0) {
+                    PageState.setCurrentDictData(resp.data);
+                    PageState.setInfoFormDialogVisible(true);
+                } else {
+                    arco.Message.error(resp.msg);
+                }
+            });
     }
 };

@@ -1,7 +1,6 @@
 import { PageAction, PageState } from "./action";
 import {
     AddDictFormDialog,
-    ChangeDictShowOrderFormDialog,
     ChangeParentDictFormDialog,
     EditDictFormDialog,
     ExportDictFormDialog,
@@ -38,7 +37,6 @@ const PageView = (props) => {
             <EditDictFormDialog/>
             <InfoDictFormDialog/>
             <ChangeParentDictFormDialog/>
-            <ChangeDictShowOrderFormDialog/>
             <ImportDictFormDialog/>
             <ExportDictFormDialog/>
         </div>
@@ -47,6 +45,7 @@ const PageView = (props) => {
 const PageTreeView = () => {
     const TreeNodExtraAction = (props) => {
         const data = props.dataRef;
+        debugger;
         return (
             <arco.Menu
                 style={{
@@ -71,38 +70,10 @@ const PageTreeView = () => {
                 >
                     新增子级
                 </arco.Menu.Item>
-                <arco.Menu.Item
-                    key="edit"
-                    onClick={() => {
-                        PageAction.editNode(data);
-                    }}
-                >
-                    编辑
-                </arco.Menu.Item>
-                <arco.Menu.Item
-                    key="remove"
-                    onClick={() => {
-                        PageAction.removeNode(data);
-                    }}
-                >
-                    删除
-                </arco.Menu.Item>
-                <arco.Menu.Item
-                    key="enable"
-                    onClick={() => {
-                        PageAction.enableNode(data);
-                    }}
-                >
-                    启用
-                </arco.Menu.Item>
-                <arco.Menu.Item
-                    key="disable"
-                    onClick={() => {
-                        PageAction.disableNode(data);
-                    }}
-                >
-                    停用
-                </arco.Menu.Item>
+                { data.dataStatus === "0" ? <arco.Menu.Item key="edit" onClick={() => {     PageAction.editNode(data);  }}>编辑 </arco.Menu.Item> : null }
+                { data.dataStatus === "0" ? <arco.Menu.Item key="remove" onClick={() => {   PageAction.removeNode(data); }} > 删除 </arco.Menu.Item> : null}
+                { data.dataStatus === "0" ? <arco.Menu.Item key="enable" onClick={() => { PageAction.enableNode(data); }}>启用</arco.Menu.Item> : null}
+                { data.dataStatus === "1" ? <arco.Menu.Item  key="disable" onClick={() => {  PageAction.disableNode(data); }} >停用</arco.Menu.Item> :null}
                 <arco.Menu.Item
                     key="changeParent"
                     onClick={() => {
@@ -375,14 +346,14 @@ const PageGridTable = () => {
         {
             width: 200,
             ellipsis: true,
-            title: "名称",
-            dataIndex: "dictName",
+            title: "别名",
+            dataIndex: "dictAlias",
         },
         {
             width: 200,
             ellipsis: true,
-            title: "别名",
-            dataIndex: "dictAlias",
+            title: "名称",
+            dataIndex: "dictName",
         },
         {
             width: 80,

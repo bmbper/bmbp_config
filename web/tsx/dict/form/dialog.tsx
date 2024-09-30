@@ -1,5 +1,5 @@
 import { PageAction, PageState } from "../action";
-import { DictForm, DictParentForm } from "./form";
+import { DictForm, DictInfoForm, DictParentForm } from "./form";
 
 export const AddDictFormDialog = () => {
   return (
@@ -13,7 +13,7 @@ export const AddDictFormDialog = () => {
               PageState.setCurrentDictData(null);
               PageState.setAddFormDialogVisible(false);
               PageState.addFormRef.current?.resetFields();
-              PageAction.findTreeData("");
+              PageAction.findTreeData(null);
             });
           });
         }}
@@ -39,7 +39,7 @@ export const EditDictFormDialog = () => {
               PageState.setCurrentDictData(null);
               PageState.setEditFormDialogVisible(false);
               PageState.addFormRef.current?.resetFields();
-              PageAction.findTreeData("");
+              PageAction.findTreeData(null);
             });
           });
         }}
@@ -55,14 +55,14 @@ export const EditDictFormDialog = () => {
 };
 export const InfoDictFormDialog = () => {
   return (
-    <>
       <arco.Modal
         title="查看字典"
         visible={PageState.infoFormDialogVisible}
         onOk={() => PageState.setInfoFormDialogVisible(false)}
         onCancel={() => PageState.setInfoFormDialogVisible(false)}
-      ></arco.Modal>
-    </>
+    >
+      <DictInfoForm/>
+      </arco.Modal>
   );
 };
 export const ChangeParentDictFormDialog = () => {
@@ -89,18 +89,7 @@ export const ChangeParentDictFormDialog = () => {
     </arco.Modal>
   );
 };
-export const ChangeDictShowOrderFormDialog = () => {
-  return (
-    <>
-      <arco.Modal
-        title="调整顺序"
-        visible={PageState.changeShowOrderFormDialogVisible}
-        onOk={() => PageState.setChangeShowOrderFormDialogVisible(false)}
-        onCancel={() => PageState.setChangeShowOrderFormDialogVisible(false)}
-      ></arco.Modal>
-    </>
-  );
-};
+
 export const ImportDictFormDialog = () => {
   return (
     <>
