@@ -1,2 +1,2 @@
-# bmbp_admin
-the manage system
+# Bmbp config
+## dict_code manage

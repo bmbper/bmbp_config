@@ -175,16 +175,16 @@ impl BmbpVarsService {
                     Some("父级节点信息异常,请联系管理员".to_string()),
                 ));
             }
-            params.set_vars_code_path(Some(format!("{}{},", parent_code_path, vars_code)));
-            params.set_vars_name_path(Some(format!("{}{},", parent_name_path, vars_name)));
+            params.set_vars_code_path(Some(format!("{}{}.", parent_code_path, vars_code)));
+            params.set_vars_name_path(Some(format!("{}{}.", parent_name_path, vars_name)));
         } else {
             params.set_vars_code_path(Some(format!(
-                "{},{},",
+                "{}.{}.",
                 params.get_vars_parent_code().as_ref().unwrap(),
                 vars_code
             )));
             params.set_vars_name_path(Some(format!(
-                "{},{},",
+                "{}.{}.",
                 params.get_vars_parent_code().as_ref().unwrap(),
                 vars_name
             )));
@@ -194,7 +194,7 @@ impl BmbpVarsService {
             .get_vars_code_path()
             .as_ref()
             .unwrap()
-            .split(",")
+            .split(".")
             .count()
             - 2;
         params.set_vars_tree_grade(Some(tree_grade as u32));
@@ -243,7 +243,7 @@ impl BmbpVarsService {
         );
         insert_wrapper.insert_column_value(
             BmbpVarsColumn::VarsValue.get_ident(),
-            params.get_vars_value().as_ref().unwrap(),
+            params.get_vars_value().as_ref().unwrap_or(&"".to_string()),
         );
 
         insert_wrapper.insert_column_value(
@@ -341,12 +341,12 @@ impl BmbpVarsService {
         {
             (
                 format!(
-                    "{},{},",
+                    "{}.{}.",
                     BMBP_TREE_ROOT_NODE.to_string(),
                     params.get_vars_code().as_ref().unwrap()
                 ),
                 format!(
-                    "{},{},",
+                    "{}.{}.",
                     BMBP_TREE_ROOT_NODE.to_string(),
                     params.get_vars_name().as_ref().unwrap()
                 ),
@@ -364,19 +364,19 @@ impl BmbpVarsService {
             let parent_node = parent_node_op.unwrap();
             (
                 format!(
-                    "{}{},",
+                    "{}{}.",
                     parent_node.get_vars_code_path().clone().unwrap(),
                     params.get_vars_code().clone().unwrap()
                 ),
                 format!(
-                    "{}{},",
+                    "{}{}.",
                     parent_node.get_vars_name_path().clone().unwrap(),
                     params.get_vars_name().as_ref().unwrap()
                 ),
             )
         };
 
-        let tree_grade = &vars_code_path.split(",").count() - 2;
+        let tree_grade = &vars_code_path.split(".").count() - 2;
         params.set_vars_tree_grade(Some(tree_grade as u32));
 
         // 校验别名是否重复
@@ -412,7 +412,7 @@ impl BmbpVarsService {
         );
         update_wrapper.set(
             BmbpVarsColumn::VarsValue,
-            params.get_vars_value().as_ref().unwrap(),
+            params.get_vars_value().as_ref().unwrap_or(&"".to_string()),
         );
         update_wrapper.set(BmbpVarsColumn::VarsCodePath, &vars_code_path);
         update_wrapper.set(BmbpVarsColumn::VarsNamePath, &vars_name_path);
@@ -466,7 +466,7 @@ impl BmbpVarsService {
             .as_ref()
             .unwrap()
             .clone();
-        let code_vec: Vec<&str> = code_path.split(',').filter(|&s| !s.is_empty()).collect();
+        let code_vec: Vec<&str> = code_path.split('.').filter(|&s| !s.is_empty()).collect();
         print!("==>{:#?}", code_vec);
         let mut update_wrapper = UpdateWrapper::new();
         update_wrapper.set("data_status", "1");
