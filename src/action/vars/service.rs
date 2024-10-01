@@ -139,6 +139,10 @@ impl BmbpVarsService {
                 Some("VALID".to_string()),
                 Some("请传入参数编码".to_string()),
             ));
+        } else {
+            let mut vars_code = params.get_vars_code().clone().unwrap_or("".to_string());
+            vars_code = vars_code.trim().to_string().replace(".", "-");
+            params.set_vars_code(Some(vars_code));
         }
 
         if params.get_vars_name().as_ref().is_none()
@@ -148,6 +152,10 @@ impl BmbpVarsService {
                 Some("VALID".to_string()),
                 Some("请传入参数名称".to_string()),
             ));
+        } else {
+            let mut vars_name = params.get_vars_name().clone().unwrap_or("".to_string());
+            vars_name = vars_name.trim().to_string().replace(".", "-");
+            params.set_vars_name(Some(vars_name));
         }
 
         if params.get_vars_parent_code().as_ref().is_none()
@@ -320,12 +328,20 @@ impl BmbpVarsService {
         let old_vars_name_path = vars_info.get_vars_name_path().clone().unwrap();
         if params.get_vars_code().is_none() {
             params.set_vars_code(vars_info.get_vars_code().clone());
+        } else {
+            let mut vars_code = params.get_vars_code().clone().unwrap_or("".to_string());
+            vars_code = vars_code.trim().to_string().replace(".", "-");
+            params.set_vars_code(Some(vars_code));
         }
         if params.get_vars_parent_code().is_none() {
             params.set_vars_parent_code(vars_info.get_vars_parent_code().clone());
         }
         if params.get_vars_name().is_none() {
             params.set_vars_name(vars_info.get_vars_name().clone());
+        } else {
+            let mut vars_name = params.get_vars_name().clone().unwrap_or("".to_string());
+            vars_name = vars_name.trim().to_string().replace(".", "-");
+            params.set_vars_name(Some(vars_name));
         }
         if params.get_vars_value().is_none() {
             params.set_vars_value(vars_info.get_vars_value().clone());

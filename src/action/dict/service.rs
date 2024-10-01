@@ -164,6 +164,10 @@ impl BmbpDictService {
                 Some("VALID".to_string()),
                 Some("请传入字典名称".to_string()),
             ));
+        } else {
+            let mut dict_name = params.get_dict_name().clone().unwrap_or("".to_string());
+            dict_name = dict_name.trim().to_string().replace(",", "-");
+            params.set_dict_name(Some(dict_name));
         }
         if params.get_dict_value().as_ref().is_none()
             || params.get_dict_value().as_ref().unwrap().is_empty()
@@ -360,6 +364,10 @@ impl BmbpDictService {
         }
         if params.get_dict_name().is_none() {
             params.set_dict_name(dict_info.get_dict_name().clone());
+        } else {
+            let mut dict_name = params.get_dict_name().clone().unwrap_or("".to_string());
+            dict_name = dict_name.trim().to_string().replace(",", "-");
+            params.set_dict_name(Some(dict_name));
         }
         if params.get_dict_alias().is_none() {
             params.set_dict_alias(dict_info.get_dict_alias().clone());
