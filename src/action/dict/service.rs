@@ -339,78 +339,79 @@ impl BmbpDictService {
                 Some("请传入字典标识".to_string()),
             ));
         }
-        let mut old_dict_name = "".to_string();
-        let mut old_dict_parent_code = "".to_string();
-        let mut old_dict_code_path = "".to_string();
-        let mut old_dict_name_path = "".to_string();
-        if let Some(dict_info) = Self::find_dict_info(depot, params.get_data_id().as_ref()).await? {
-            old_dict_parent_code = dict_info.get_dict_parent_code().clone().unwrap();
-            old_dict_name = dict_info.get_dict_name().clone().unwrap();
-            old_dict_code_path = dict_info.get_dict_code_path().clone().unwrap();
-            old_dict_name_path = dict_info.get_dict_name_path().clone().unwrap();
-            if params.get_dict_code().is_none() {
-                params.set_dict_code(dict_info.get_dict_code().clone());
-            }
-            if params.get_dict_parent_code().is_none() {
-                params.set_dict_parent_code(dict_info.get_dict_parent_code().clone());
-            }
-            if params.get_dict_name().is_none() {
-                params.set_dict_name(dict_info.get_dict_name().clone());
-            }
-            if params.get_dict_alias().is_none() {
-                params.set_dict_alias(dict_info.get_dict_alias().clone());
-            }
-            if params.get_dict_value().is_none() {
-                params.set_dict_value(dict_info.get_dict_value().clone());
-            }
-            if params.get_data_sort().is_none() {
-                params.set_data_sort(dict_info.get_data_sort().clone());
-            }
-            if params.get_dict_order().is_none() {
-                params.set_dict_order(dict_info.get_dict_order().clone());
-            }
-        } else {
+
+        let dict_info_op = Self::find_dict_info(depot, params.get_data_id().as_ref()).await?;
+        if dict_info_op.is_none() {
             return Err(BmbpRespErr::err(
                 Some("REQUEST".to_string()),
                 Some("未找到字典信息".to_string()),
             ));
         }
+        let dict_info = dict_info_op.unwrap();
+        let old_dict_name = dict_info.get_dict_name().clone().unwrap();
+        let old_dict_parent_code = dict_info.get_dict_parent_code().clone().unwrap();
+        let old_dict_code_path = dict_info.get_dict_code_path().clone().unwrap();
+        let old_dict_name_path = dict_info.get_dict_name_path().clone().unwrap();
+        if params.get_dict_code().is_none() {
+            params.set_dict_code(dict_info.get_dict_code().clone());
+        }
+        if params.get_dict_parent_code().is_none() {
+            params.set_dict_parent_code(dict_info.get_dict_parent_code().clone());
+        }
+        if params.get_dict_name().is_none() {
+            params.set_dict_name(dict_info.get_dict_name().clone());
+        }
+        if params.get_dict_alias().is_none() {
+            params.set_dict_alias(dict_info.get_dict_alias().clone());
+        }
+        if params.get_dict_value().is_none() {
+            params.set_dict_value(dict_info.get_dict_value().clone());
+        }
+        if params.get_data_sort().is_none() {
+            params.set_data_sort(dict_info.get_data_sort().clone());
+        }
+        if params.get_dict_order().is_none() {
+            params.set_dict_order(dict_info.get_dict_order().clone());
+        }
 
-        let mut dict_code_path = "".to_string();
-        let mut dict_name_path = "".to_string();
-
-        if params.get_dict_parent_code().as_ref().unwrap() == BMBP_TREE_ROOT_NODE {
-            dict_code_path = format!(
-                "{},{},",
-                BMBP_TREE_ROOT_NODE.to_string(),
-                params.get_dict_code().as_ref().unwrap()
-            );
-            dict_name_path = format!(
-                "{},{},",
-                BMBP_TREE_ROOT_NODE.to_string(),
-                params.get_dict_name().as_ref().unwrap()
-            );
-        } else {
-            if let Some(parent_node) =
-                Self::find_dict_info_by_code(depot, params.get_dict_parent_code().as_ref()).await?
-            {
-                dict_code_path = format!(
-                    "{}{},",
-                    parent_node.get_dict_code_path().clone().unwrap(),
-                    params.get_dict_code().clone().unwrap()
-                );
-                dict_name_path = format!(
-                    "{}{},",
-                    parent_node.get_dict_name_path().clone().unwrap(),
+        let (dict_code_path, dict_name_path) = if params.get_dict_parent_code().as_ref().unwrap()
+            == BMBP_TREE_ROOT_NODE
+        {
+            (
+                format!(
+                    "{},{},",
+                    BMBP_TREE_ROOT_NODE.to_string(),
+                    params.get_dict_code().as_ref().unwrap()
+                ),
+                format!(
+                    "{},{},",
+                    BMBP_TREE_ROOT_NODE.to_string(),
                     params.get_dict_name().as_ref().unwrap()
-                );
-            } else {
+                ),
+            )
+        } else {
+            let parent_node_op =
+                Self::find_dict_info_by_code(depot, params.get_dict_parent_code().as_ref()).await?;
+            if parent_node_op.is_none() {
                 return Err(BmbpRespErr::err(
                     Some("REQUEST".to_string()),
                     Some("未找到上级字典信息".to_string()),
                 ));
             }
-        }
+            let parent_node = parent_node_op.unwrap();
+            (
+                format!(
+                    "{}{},",
+                    parent_node.get_dict_code_path().clone().unwrap(),
+                    params.get_dict_code().clone().unwrap()
+                ),
+                format!(
+                    "{}{},",
+                    parent_node.get_dict_name_path().clone().unwrap(),
+                    params.get_dict_name().as_ref().unwrap()
+                ),
+            )
+        };
 
         let tree_grade = &dict_code_path.split(",").count() - 2;
         params.set_dict_tree_grade(Some(tree_grade as u32));

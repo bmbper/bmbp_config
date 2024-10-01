@@ -14,11 +14,6 @@ pub struct BmbpDict {
     dict_alias: Option<String>,
 }
 
-#[table_rdbc_tree_bean_orm_option(BMBP_CONFIG_VARS, vars)]
-pub struct BmbpVars {
-    var_value: Option<String>,
-}
-
 #[bean]
 pub struct BmbpCombo {
     label: Option<String>,
