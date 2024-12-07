@@ -1,4 +1,4 @@
-import { PageAction, PageState } from "./action";
+import {PageAction, PageState} from "./action";
 import {
     AddDictFormDialog,
     ChangeParentDictFormDialog,
@@ -18,9 +18,9 @@ const PageView = (props) => {
         PageAction.findTreeData(null);
     }, []);
     React.useEffect(() => {
-        PageAction.findGridData();
+        PageAction.findPageData();
     }, [
-       PageState.pageData.pageNo, PageState.pageData.pageSize,PageState.selectTreeNodeData,PageState.searchFormData
+        PageState.pageData.pageNo, PageState.pageData.pageSize, PageState.selectTreeNodeData, PageState.searchFormData
     ]);
     return (
         <div className="bmbp-app-fluid">
@@ -70,10 +70,18 @@ const PageTreeView = () => {
                 >
                     新增子级
                 </arco.Menu.Item>
-                { data.dataStatus === "0" ? <arco.Menu.Item key="edit" onClick={() => {     PageAction.editNode(data);  }}>编辑 </arco.Menu.Item> : null }
-                { data.dataStatus === "0" ? <arco.Menu.Item key="remove" onClick={() => {   PageAction.removeNode(data); }} > 删除 </arco.Menu.Item> : null}
-                { data.dataStatus === "0" ? <arco.Menu.Item key="enable" onClick={() => { PageAction.enableNode(data); }}>启用</arco.Menu.Item> : null}
-                { data.dataStatus === "1" ? <arco.Menu.Item  key="disable" onClick={() => {  PageAction.disableNode(data); }} >停用</arco.Menu.Item> :null}
+                {data.dataStatus === "0" ? <arco.Menu.Item key="edit" onClick={() => {
+                    PageAction.editNode(data);
+                }}>编辑 </arco.Menu.Item> : null}
+                {data.dataStatus === "0" ? <arco.Menu.Item key="remove" onClick={() => {
+                    PageAction.removeNode(data);
+                }}> 删除 </arco.Menu.Item> : null}
+                {data.dataStatus === "0" ? <arco.Menu.Item key="enable" onClick={() => {
+                    PageAction.enableNode(data);
+                }}>启用</arco.Menu.Item> : null}
+                {data.dataStatus === "1" ? <arco.Menu.Item key="disable" onClick={() => {
+                    PageAction.disableNode(data);
+                }}>停用</arco.Menu.Item> : null}
                 <arco.Menu.Item
                     key="changeParent"
                     onClick={() => {
@@ -135,7 +143,7 @@ const PageTreeView = () => {
 };
 
 const PageGridView = () => {
-    
+
     return (
         <div className="bmbp-grid-container">
             <PageGridSearchForm/>
@@ -203,17 +211,17 @@ const PageGridSearchForm = () => {
     );
 };
 const PageGridToolBar = () => {
-    
+
     return (
         <div className="bmbp-grid-toolbar">
             <div className="bmbp-grid-toolbar major">
                 <arco.Button
-                        type="primary"
-                        onClick={() => {
-                            PageAction.addChildNode(PageState.selectTreeNodeData?.dataRef);
-                        }}
-                    >
-                        新增
+                    type="primary"
+                    onClick={() => {
+                        PageAction.addChildNode(PageState.selectTreeNodeData?.dataRef);
+                    }}
+                >
+                    新增
                 </arco.Button>
                 {PageState.selectedRowKeys && PageState.selectedRowKeys.length > 0 ? (
                     <arco.Button
@@ -273,7 +281,7 @@ const PageGridTable = () => {
                     icon={<arcoicon.IconStrikethrough/>}
                     size="mini"
                     onClick={() => {
-                         PageAction.changeParentNode(record);
+                        PageAction.changeParentNode(record);
                     }}
                 ></arco.Button>
             </arco.Tooltip>,
@@ -406,7 +414,7 @@ const PageGridTable = () => {
             PageState.setSelectedRows(selectedRows);
         },
         onSelect: (selected, record, selectedRows) => {
-            
+
         },
     };
     return (

@@ -24,12 +24,12 @@ export const PageAction = {
         const [selectTreeNodeData, setSelectTreeNodeData] = React.useState();
         PageState.selectTreeNodeData = selectTreeNodeData;
         PageState.setSelectTreeNodeData = setSelectTreeNodeData;
-        
+
         // 字典树选中节点KEY
         const [selectTreeNodeKeys, setSelectTreeNodeKeys] = React.useState([]);
         PageState.selectTreeNodeKeys = selectTreeNodeKeys;
         PageState.setSelectTreeNodeKeys = setSelectTreeNodeKeys;
-        
+
         // 字典列表-查询数据
         const [searchFormData, setSearchFormData] = React.useState({});
         PageState.setSearchFormData = setSearchFormData;
@@ -120,7 +120,7 @@ export const PageAction = {
         PageState.importFormRef = React.useRef();
         PageState.exportFormRef = React.useRef();
     },
-    findTreeData: (v:String|null) => {
+    findTreeData: (v: String | null) => {
         if (!v && v == "") {
             PageState.setSelectTreeNodeKeys([]);
             PageState.setSelectTreeNodeData({});
@@ -131,7 +131,7 @@ export const PageAction = {
                 const {code, msg, data} = resp;
                 if (code == 0) {
                     PageState.setTreeData(data);
-                    PageAction.findGridData();
+                    PageAction.findPageData();
                 } else {
                     console.log("error:", resp);
                     arco.Message.error(resp.msg);
@@ -159,7 +159,7 @@ export const PageAction = {
                 arco.Message.error("系统好像是走丢了，请联系管理员");
             });
     },
-    findGridData: () => {
+    findPageData: () => {
         let searchFormData = PageState.searchFormData;
         let pageParams = {
             pageNo: PageState.pageData.pageNo,
@@ -287,7 +287,7 @@ export const PageAction = {
     },
 
     viewInfo(node: any) {
-         let dataId = node.dataId;
+        let dataId = node.dataId;
         axios
             .post(PageUrl.findInfoUrl + "?dataId=" + dataId, {})
             .then((resp: any) => {
